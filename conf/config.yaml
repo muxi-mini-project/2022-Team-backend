@@ -1,0 +1,9 @@
+mysql:
+  host: "127.0.0.1"
+  port: "8918"
+  user: "root"
+  password: "036068"
+  db: "team"
+  charset: "UTF-8"
+token:
+  secret_key: "generating_secrect_key_by_EF"
