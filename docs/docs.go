@@ -17,6 +17,7 @@ var doc = `{
     "info": {
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
+        "termsOfService": "http://swagger.io/terrms",
         "contact": {},
         "version": "{{.Version}}"
     },
@@ -36,12 +37,12 @@ type swaggerInfo struct {
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = swaggerInfo{
-	Version:     "",
-	Host:        "",
+	Version:     "1.0.0",
+	Host:        "localhost:8918",
 	BasePath:    "",
-	Schemes:     []string{},
-	Title:       "",
-	Description: "",
+	Schemes:     []string{"http"},
+	Title:       "Team",
+	Description: "一款面向小型团队的任务进度共享软件",
 }
 
 type s struct{}
