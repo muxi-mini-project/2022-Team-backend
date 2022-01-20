@@ -1,8 +1,10 @@
 package model
 
+//gorm:"column:id",是为为对应的sql语句中的字段起名字。gorm自动生成sql时大写字母转小写还会生成下划线
 type User struct {
-	UserId   string `json:"user_id"`
-	NickName string `json:"nickname"`
+	UserId   int    `json:"user_id" gorm:"column:id"`
+	Phone    string `json:"phone"`
+	NickName string `json:"nickname" gorm:"column:nickname"`
 	Avatar   string `json:"avatar"`
 	Password string `json:"password"`
 	Feedback string `json:"feedback"`
