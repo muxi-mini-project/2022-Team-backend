@@ -27,10 +27,14 @@ func User(c *gin.Context) {
 	}
 	// if _,a := model.IfExistUserPhone(user.Phone);
 	//电话位数问题交给前端
+	fmt.Println(user.Phone)
 	if _, a := model.IfExistUserPhone(user.Phone); a != 1 {
+		// user.Phone
 		c.JSON(200, gin.H{
 			"message": "对不起，该电话号码已经被绑定",
 		})
+		fmt.Println(a)
+		return
 	}
 	user_id := model.Register(user.Phone, user.Password)
 	fmt.Println(user.Phone)
@@ -47,4 +51,46 @@ func User(c *gin.Context) {
 	// 		err1 := model.InitInfo(user.NickName, user.Password)
 	// 		fmt.Println(err1)
 	// 	}
+}
+
+// @Summary "登入"
+// @Describtion 验证用户信息实现登入
+// @Tags login
+// @Accept json
+// @Producer json
+// @Param user body model.Userinfo true "user"
+// @Success 200 {object} model.Token "登陆成功"
+// @Failure 400 "输入格式错误"
+// @Failure 404 "用户不存在"
+// @Failure 401 "密码错误"
+// @Router /login[post]
+
+func Login(c *gin.Context) {
+	var user model.User
+	//BindJSON把前端的数据写到user里
+	if err := c.BindJSON(&user); err != nil {
+		c.JSON(400, gin.H{"message": "输入格式有误"})
+		return
+	}
+
+	fmt.Println(user.Phone, user.Password)
+	//验证用户是否存在（电话是否已经注册）
+	if model.VerifyPhone(user.Phone) != false {
+		c.JSON(404, gin.H{"message": "用户不存在"})
+		return
+	}
+	//验证密码,密码可能重复所以还要电话
+	if model.VerifyPassword(user.Phone, user.Password) == false {
+		c.JSON(401, gin.H{"message": "密码错误"})
+		return
+	} else {
+		// user.UserId = model.GetId{user.Phone}
+		c.JSON(200, gin.H{
+			"message": "登陆成功",
+			"token":   model.GenerateToken(user.Phone),
+		})
+		token := model.GenerateToken(user.Phone)
+		fmt.Println(token)
+		return
+	}
 }

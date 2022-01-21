@@ -8,5 +8,5 @@ import (
 
 func Router(r *gin.Engine) {
 	r.POST("/user", handler.User)
-
+	r.POST("/login", handler.Login)
 }
