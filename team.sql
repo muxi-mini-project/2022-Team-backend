@@ -7,9 +7,10 @@ use team;
 drop  table if exists user;
 create table user(
     id int primary key auto_increment,
-    nickname varchar(255) not null unique,
+    nickname varchar(255),
+    phone varchar(11) not null unique,
     password varchar(255) not null,
-    avatar varchar(255) not null,
+    avatar varchar(255)  null,
     feedback varchar(255) 
 );
 

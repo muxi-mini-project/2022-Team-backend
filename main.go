@@ -3,7 +3,8 @@ package main
 import (
 	"2022-TEAM-BACKEND/config"
 	"2022-TEAM-BACKEND/model"
-	_ "fmt"
+	"2022-TEAM-BACKEND/router"
+	"fmt"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/spf13/viper"
@@ -20,8 +21,14 @@ import (
 // @Schemes http
 
 func main() {
+	r := gin.Default() //创建带有默认中间件的路由
 	config.ConfigInit()
-	model.Initdb()
-	r := gin.Default()
-	r.Run(":9918")
+	//注意大写规范
+	model.DB = model.Initdb()
+
+	router.Router(r)
+	if err := r.Run(":9918"); err != nil {
+		fmt.Println(err)
+	}
+
 }
