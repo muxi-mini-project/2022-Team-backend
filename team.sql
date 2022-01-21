@@ -7,7 +7,7 @@ use team;
 drop  table if exists user;
 create table user(
     id int primary key auto_increment,
-    nickname varchar(255),
+    nickname varchar(255) ,
     phone varchar(11) not null unique,
     password varchar(255) not null,
     avatar varchar(255)  null,
@@ -21,7 +21,7 @@ create table team(
     avatar varchar(255) not null,
     creator varchar(255) not null,
     team_coding varchar(255),
-    foreign key (creator) references user(nickname)
+    foreign key (creator) references user(phone)
 );
 
 drop table if exists user_team;
@@ -29,7 +29,7 @@ create table user_team(
     id int primary key auto_increment,
     username varchar(255) not null,
     teamname varchar(255) not null,
-    foreign key (username) references user(nickname),
+    foreign key (username) references user(phone),
     foreign key (teamname) references team(name),
     unique (username,teamname)
 );
@@ -73,6 +73,6 @@ create table user_task(
     principal varchar(255) not null,
     task_id int not null,
     performance varchar(5),
-    foreign key (principal) references user(nickname),
+    foreign key (principal) references user(phone),
     foreign key (task_id) references task(id)
 );
