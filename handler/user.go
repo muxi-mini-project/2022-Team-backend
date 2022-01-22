@@ -33,7 +33,6 @@ func User(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "对不起，该电话号码已经被绑定",
 		})
-		fmt.Println(a)
 		return
 	}
 	user_id := model.Register(user.Phone, user.Password)
@@ -41,17 +40,20 @@ func User(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"user_id": user_id,
 	})
-	// 	//注册后的下一个页面输入信息
-	// 	if user_id != " " {
-	// 		if err := c.BindJSON(&user); err != nil {
-	// 			c.JSON(400, gin.H{
-	// 				"message": "输入有误，格式错误"})
-	// 			return
-	// 		}
-	// 		err1 := model.InitInfo(user.NickName, user.Password)
-	// 		fmt.Println(err1)
-	// 	}
 }
+
+// 注册后的下一个页面输入信息,这应该也要token了吧
+
+// if user_id != " " {
+// 	if err := c.BindJSON(&user); err != nil {
+// 		c.JSON(400, gin.H{
+// 			"message": "输入有误，格式错误"})
+// 		return
+// 	} else {
+// 		err1 := model.InitInfo(user.NickName, user.Avatar)
+// 		fmt.Println(err1)
+// 	}
+// }
 
 // @Summary "登入"
 // @Describtion 验证用户信息实现登入
