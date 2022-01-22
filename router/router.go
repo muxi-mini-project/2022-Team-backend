@@ -9,4 +9,7 @@ import (
 func Router(r *gin.Engine) {
 	r.POST("/user", handler.User)
 	r.POST("/login", handler.Login)
+	r.GET("/info", handler.Userinfo)
+	r.PUT("/info", handler.ChangeInfomation)
+	r.PUT("/create_team", handler.CreateTeam)
 }

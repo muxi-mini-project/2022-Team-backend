@@ -1,7 +1,7 @@
 package model
 
 import (
-	// "errors"
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -34,7 +34,7 @@ func IfExistUserPhone(phone string) (error, int) {
 	var temp User
 	if err := DB.Table("user").Where("phone = ?", phone).Find(&temp).Error; temp.Phone == "" {
 		log.Println(err) //比fmt.Println多时间戳
-		fmt.Println("hh", err)
+		// fmt.Println("hh", err)
 		return err, 1
 	}
 	fmt.Println(temp)
@@ -80,6 +80,7 @@ var (
 	ExpireTime = 604800 //token过期时间
 )
 
+//我自己往token里写进去的只有phone
 func GenerateToken(phone string) string {
 	claims := &jwtClaims{
 		Phone: phone,
@@ -103,5 +104,49 @@ func genToken(claims jwtClaims) (string, error) {
 		return "", err
 	}
 	return singedToken, nil
+}
 
+//验证token
+func VerifyToken(token string) (string, error) {
+	TempToken, err := jwt.ParseWithClaims(token, &jwtClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte(key), nil
+	})
+	if err != nil {
+		return "", errors.New("token解析失败")
+	}
+	claims, ok := TempToken.Claims.(*jwtClaims)
+	if !ok {
+		return "", errors.New("发生错误")
+	}
+	if err := TempToken.Claims.Valid(); err != nil {
+		return "", errors.New("发生错误")
+	}
+	fmt.Println(claims.Phone)
+	return claims.Phone, nil
+}
+
+//获取用户信息
+func GetUserInfo(phone string) (User, error) {
+	var user User
+	if err := DB.Table("user").Where("phone=?", phone).Find(&user).Error; err != nil {
+		return User{}, err
+	}
+	return user, nil
+}
+
+func ChangeUserInfo(user User) error {
+	fmt.Println(user.Phone)
+	if err := DB.Table("user").Where("phone=?", user.Phone).Updates(map[string]interface{}{"nickname": user.NickName, "avatar": user.Avatar}).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func RegisterTeam(teamName string, avatar string, creator string, teamCoding string) error {
+	team := Team{TeamName: teamName, Avatar: avatar, Creator: creator, TeamCoding: teamCoding}
+	if err := DB.Table("team").Create(&team).Error; err != nil {
+		fmt.Println("注册团队出错" + err.Error()) //err.Error打印错误
+		return err
+	}
+	return nil
 }

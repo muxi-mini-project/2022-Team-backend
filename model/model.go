@@ -11,8 +11,8 @@ type User struct {
 }
 
 type Team struct {
-	TeamId     string `json:"team_id"`
-	TeamName   string `json:"teamname"`
+	TeamId     string `json:"team_id" gorm:"column:id`
+	TeamName   string `json:"teamname" gorm:"column:name`
 	Avatar     string `json:"avatar"`
 	Creator    string `json:"creator"`
 	TeamCoding string `json:"team_coding"`
