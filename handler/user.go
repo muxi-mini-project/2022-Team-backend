@@ -3,6 +3,7 @@ package handler
 import (
 	"2022-TEAM-BACKEND/model"
 	"fmt"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,7 +14,7 @@ import (
 // @Accept json
 // @Produce json
 // @Param user body model.Users "true"
-// @Success 200 "注册成功"
+// @Success 200 "用户创建成功"
 // @Failure 400 "输入有误，格式错误"
 // @Router /user [post]
 
@@ -42,24 +43,55 @@ func User(c *gin.Context) {
 	})
 }
 
-// 注册后的下一个页面输入信息,这应该也要token了吧
+// @Summary "初始化信息"
+// @Description "注册后弹窗里输入的信息"
+// @tags user
+// @Accept json
+// @Produce json
+// @Param user body model.User "true"
+// @Success 200 "注册成功"
+// @Failure 400 "输入有误，格式错误"
+// @Router /user/pupup [post]
 
-// if user_id != " " {
-// 	if err := c.BindJSON(&user); err != nil {
-// 		c.JSON(400, gin.H{
-// 			"message": "输入有误，格式错误"})
-// 		return
-// 	} else {
-// 		err1 := model.InitInfo(user.NickName, user.Avatar)
-// 		fmt.Println(err1)
-// 	}
-// }
+// 注册后的下一个页面输入信息,这里用了一下id
+//用户名不能为空
+func InitUserInfo(c *gin.Context) {
+	id := c.Request.Header.Get("id")
+
+	var user model.User
+	user.UserId, _ = strconv.Atoi(id)
+	if err := c.BindJSON(&user); err != nil {
+		c.JSON(400, gin.H{
+			"message": "输入有误，格式错误"})
+		return
+	}
+	if user.NickName == "" {
+		c.JSON(400, gin.H{"message": "用户名不可为空!"})
+		return
+	}
+	if _, a := model.IfExistNickname(user.NickName); a != 1 {
+		// user.Phone
+		c.JSON(200, gin.H{
+			"message": "对不起，该用户名已被注册",
+		})
+		return
+	}
+
+	err1 := model.InitInfo(user.UserId, user.NickName, user.Avatar)
+
+	if err1 == nil {
+		c.JSON(200, gin.H{
+			"message": "注册成功"})
+		return
+	}
+}
 
 // @Summary "登入"
 // @Describtion 验证用户信息实现登入
 // @Tags login
 // @Accept json
 // @Producer json
+// @Param token header string true "token"
 // @Param user body model.Userinfo true "user"
 // @Success 200 {object} model.Token "登陆成功"
 // @Failure 400 "输入格式错误"

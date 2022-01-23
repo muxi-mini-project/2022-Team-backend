@@ -21,20 +21,32 @@ func Register(phone string, password string) string {
 	return Id
 }
 
-// func InitInfo(nickname string, avatar string) error {
-// 	user := User{NickName: nickname, Avatar: avatar}
-// 	if err := DB.Table("user").Where("id = ?", user.UserId).Updates(map[string]interface{}{"nickname": user.NickName, "avatar": user.Avatar}).Error; err != nil {
-// 		return err
-// 	}
-// 	return nil
-// }
+//初始化信息
+func InitInfo(id int, nickname string, avatar string) error {
+	user := User{UserId: id, NickName: nickname, Avatar: avatar}
+	if err := DB.Table("user").Where("id = ?", user.UserId).Updates(map[string]interface{}{"nickname": user.NickName, "avatar": user.Avatar}).Error; err != nil {
+		return err
+	}
+	return nil
+}
 
 //防止电话重复绑定331,如果有这条数据则说明该电话号码已被注册
 func IfExistUserPhone(phone string) (error, int) {
 	var temp User
-	if err := DB.Table("user").Where("phone = ?", phone).Find(&temp).Error; temp.Phone == "" {
+	if err := DB.Table("user").Where("phone = ?", phone).Find(&temp).Error; temp.Phone == "" { //电话为空说明数据库中没有这个电话
 		log.Println(err) //比fmt.Println多时间戳
 		// fmt.Println("hh", err)
+		return err, 1
+	}
+	fmt.Println(temp)
+	return nil, 0
+}
+
+//防止用户名重复
+func IfExistNickname(nickname string) (error, int) {
+	var temp User
+	if err := DB.Table("user").Where("nickname = ?", nickname).Find(&temp).Error; temp.NickName == "" { //电话为空说明数据库中没有这个电话
+		log.Println(err) //比fmt.Println多时间戳
 		return err, 1
 	}
 	fmt.Println(temp)
@@ -150,3 +162,31 @@ func RegisterTeam(teamName string, avatar string, creator string, teamCoding str
 	}
 	return nil
 }
+
+//防止团队名重复
+func IfExistTeamname(teamname string) (error, int) {
+	var temp Team
+	if err := DB.Table("team").Where("name = ?", teamname).Find(&temp).Error; temp.TeamName == "" {
+		log.Println(err) //比fmt.Println多时间戳
+		return err, 1
+	}
+	fmt.Println(temp)
+	return nil, 0
+}
+func JoinTeam(username string, teamname string) error {
+	team := UserTeam{UserName: username, TeamName: teamname}
+	if err := DB.Table("user_team").Create(&team).Error; err != nil {
+		fmt.Println("加入团队出错" + err.Error()) //err.Error打印错误
+		return err
+	}
+	return nil
+}
+
+// func ProjectInfo(name string,creator string,) error {
+// 	team := UserTeam{UserName: username, TeamName: teamname}
+// 	if err := DB.Table("user_team").Create(&team).Error; err != nil {
+// 		fmt.Println("加入团队出错" + err.Error()) //err.Error打印错误
+// 		return err
+// 	}
+// 	return nil
+// }
