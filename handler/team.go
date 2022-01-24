@@ -37,17 +37,20 @@ func CreateTeam(c *gin.Context) {
 	if err3 != nil {
 		log.Println(err3)
 	}
-	if _, a := model.IfExistTeamname(teamInfo.TeamName); a != 1 {
-		c.JSON(200, gin.H{
-			"message": "对不起，该团队名已被注册",
-		})
-		return
-	}
-	if err := model.RegisterTeam(teamInfo.TeamName, teamInfo.Avatar, user.NickName, teamInfo.TeamCoding); err != nil {
+	// if _, a := model.IfExistTeamname(teamInfo.TeamName); a != 1 {
+	// 	c.JSON(200, gin.H{
+	// 		"message": "对不起，该团队名已被注册",
+	// 	})
+	// 	return
+	// }
+	if err := model.RegisterTeam(teamInfo.TeamName, teamInfo.Avatar, user.UserId, teamInfo.TeamCoding); err != nil {
 		c.JSON(401, gin.H{"message": "创建失败"})
 		return
 	}
-	c.JSON(200, gin.H{"message": "团队创建成功"})
+	c.JSON(200, gin.H{
+		"message": "团队创建成功",
+		"teamid":  teamInfo.TeamId,
+	})
 }
 
 // @Summary "加入团队"
@@ -80,10 +83,13 @@ func JoinTeam(c *gin.Context) {
 		c.JSON(401, gin.H{"message": "格式错误"})
 		return
 	}
-	fmt.Println(team.TeamName)
-	if err := model.JoinTeam(user.NickName, team.TeamName); err != nil {
+	fmt.Println(team.TeamId)
+	if err := model.JoinTeam(user.UserId, team.TeamId); err != nil {
 		c.JSON(401, gin.H{"message": "加入失败"})
 		return
 	}
-	c.JSON(200, gin.H{"message": "加入成功"})
+	c.JSON(200, gin.H{
+		"message": "加入成功",
+		"team_id": team.TeamId,
+	})
 }

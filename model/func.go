@@ -154,8 +154,8 @@ func ChangeUserInfo(user User) error {
 	return nil
 }
 
-func RegisterTeam(teamName string, avatar string, creator string, teamCoding string) error {
-	team := Team{TeamName: teamName, Avatar: avatar, Creator: creator, TeamCoding: teamCoding}
+func RegisterTeam(teamName string, avatar string, creator_id int, teamCoding string) error {
+	team := Team{TeamName: teamName, Avatar: avatar, CreatorId: creator_id, TeamCoding: teamCoding}
 	if err := DB.Table("team").Create(&team).Error; err != nil {
 		fmt.Println("注册团队出错" + err.Error()) //err.Error打印错误
 		return err
@@ -173,8 +173,8 @@ func IfExistTeamname(teamname string) (error, int) {
 	fmt.Println(temp)
 	return nil, 0
 }
-func JoinTeam(username string, teamname string) error {
-	team := UserTeam{UserName: username, TeamName: teamname}
+func JoinTeam(userId int, teamId int) error {
+	team := UserTeam{UserId: userId, TeamId: teamId}
 	if err := DB.Table("user_team").Create(&team).Error; err != nil {
 		fmt.Println("加入团队出错" + err.Error()) //err.Error打印错误
 		return err
@@ -182,11 +182,36 @@ func JoinTeam(username string, teamname string) error {
 	return nil
 }
 
-// func ProjectInfo(name string,creator string,) error {
-// 	team := UserTeam{UserName: username, TeamName: teamname}
-// 	if err := DB.Table("user_team").Create(&team).Error; err != nil {
-// 		fmt.Println("加入团队出错" + err.Error()) //err.Error打印错误
-// 		return err
-// 	}
-// 	return nil
-// }
+//添加步骤信息
+func AddStep(name string, Pid int) error {
+	Step := Step{StepName: name, ProjectId: Pid}
+	if err := DB.Table("step").Create(&Step).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+//获取团队成员id
+func GetTeamMenberId(Tid int) []string {
+	var Id []string
+	var userTeam []UserTeam
+	if err := DB.Table("user_team").Where("team_id=?", Tid).Find(&userTeam).Error; err != nil {
+		log.Println(err)
+		return nil
+	} else {
+		fmt.Println(userTeam)
+		for _, id := range userTeam {
+			Id = append(Id, string(id.UserId))
+		}
+		return Id
+	}
+}
+
+//获取团队成员名字
+func GetTeamMenberName(UsersId []string) ([]User, error) {
+	var users []User
+	if err := DB.Table("user").Where("user_id in (?)", UsersId).Find(&users).Error; err != nil {
+		return nil, err
+	}
+	return users, err
+}
