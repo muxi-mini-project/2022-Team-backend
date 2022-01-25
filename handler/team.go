@@ -16,9 +16,9 @@ import (
 // @Param token header string true "token"
 // @Param teamInfo body model.Team true "teamInfo"
 // @Success 200
-// @Failure 404 "身份验证失败"
-// @Failure 400 "格式错误"
-// @Failure 401 "创建失败"
+// @Failure 401 "身份验证失败"
+// @Failure 404 "格式错误"
+// @Failure 400 "创建失败"
 // @Router /create_team
 func CreateTeam(c *gin.Context) {
 	var teamInfo model.Team
@@ -61,9 +61,9 @@ func CreateTeam(c *gin.Context) {
 // @Param token header string true "token"
 // @Param team body model.UserTeam true "team"
 // @Success 200 "加入成功"
-// @Failure 404 "身份验证失败"
-// @Failure 400 "格式错误"
-// @Failure 401 "加入失败"
+// @Failure 401 "身份验证失败"
+// @Failure 404 "格式错误"
+// @Failure 400 "加入失败"
 // @Router /create_team
 func JoinTeam(c *gin.Context) {
 	//获取用户信息

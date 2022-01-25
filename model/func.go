@@ -146,6 +146,7 @@ func GetUserInfo(phone string) (User, error) {
 	return user, nil
 }
 
+//修改个人信息
 func ChangeUserInfo(user User) error {
 	fmt.Println(user.Phone)
 	if err := DB.Table("user").Where("phone=?", user.Phone).Updates(map[string]interface{}{"nickname": user.NickName, "avatar": user.Avatar}).Error; err != nil {
@@ -154,6 +155,7 @@ func ChangeUserInfo(user User) error {
 	return nil
 }
 
+//注册团队
 func RegisterTeam(teamName string, avatar string, creator_id int, teamCoding string) error {
 	team := Team{TeamName: teamName, Avatar: avatar, CreatorId: creator_id, TeamCoding: teamCoding}
 	if err := DB.Table("team").Create(&team).Error; err != nil {
@@ -192,6 +194,7 @@ func AddStep(name string, Pid int) error {
 }
 
 //获取团队成员id
+//没查到不就return nil吗？没搞懂测试再说吧
 func GetTeamMenberId(Tid string) []string {
 	var Id []string
 	var userTeam []UserTeam
@@ -275,4 +278,81 @@ func GenDoneList(Uid int) []UserTask {
 		}
 	}
 	return userTask2
+}
+
+//修改密码
+func ModifyPassword(phone string, newPassword string) error {
+	err := DB.Table("user").Where("phone=?", phone).Updates(map[string]interface{}{"password": newPassword}).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+//完成任务
+func CompleteTask(id string) error {
+	if err := DB.Table("user_task").Where("id=?", id).Updates(map[string]interface{}{"performance": true}).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+//取消完成状态
+func CancelComplete(id string) error {
+	if err := DB.Table("user_task").Where("id=?", id).Updates(map[string]interface{}{"performance": false}).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+//删除项目
+func RemoveProject(id string) error {
+	var project Project
+	if err := DB.Table("project").Where("id=?", id).Delete(&project).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+//删除任务
+func RemoveTask(id string) error {
+	var task Task
+	if err := DB.Table("task").Where("id=?", id).Delete(&task).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+//获取项目信息
+func GetProjectInfo(id string) (Project, error) {
+	var project Project
+	if err := DB.Table("project").Where("id=?", id).Find(&project).Error; err != nil {
+		return Project{}, err
+	}
+	return project, nil
+}
+
+//获取任务信息
+func GetTaskInfo(id string) (Task, error) {
+	var task Task
+	if err := DB.Table("task").Where("id=?", id).Find(&task).Error; err != nil {
+		return Task{}, err
+	}
+	return task, nil
+}
+
+//修改项目信息
+func ChangeProjectInfo(project Project) error {
+	if err := DB.Table("project").Where("id=?", project.ProjectId).Updates(map[string]interface{}{"name": project.ProjectName, "start_time": project.StartTime, "deadline": project.Deadline, "remark": project.Remark}).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+//修改任务信息
+func ChangeTaskInfo(task Task) error {
+	if err := DB.Table("task").Where("id=?", task.TaskId).Updates(map[string]interface{}{"name": task.TaskName, "start_time": task.StartTime, "deadline": task.Deadline, "remark": task.Remark}).Error; err != nil {
+		return err
+	}
+	return nil
 }

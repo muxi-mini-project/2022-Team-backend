@@ -14,7 +14,7 @@ import (
 // @Produce json
 // @Param token header string true "token"
 // @Success 200 {object} model.Userinfo
-// @Failure 404 "获取失败"
+// @Failure 400 "获取失败"
 // Router /info [get]
 
 func Userinfo(c *gin.Context) {
@@ -84,6 +84,8 @@ func ChangeInfomation(c *gin.Context) {
 // @Param token header string true "token"
 // @Success 200 "验证成功"
 // @Failure 401 "验证失败"
+// @Failure 400  "输入格式有误"
+// @Failure 404 "获取失败"
 // @Router /change_password/verify [get]
 func VerifyPassword(c *gin.Context) {
 	var user model.User
@@ -100,8 +102,8 @@ func VerifyPassword(c *gin.Context) {
 		c.JSON(400, gin.H{"message": "输入格式有误"})
 		return
 	}
-	if user.Password != Userinformation.Phone {
-		c.JSON(400, gin.H{"message": "验证失败"})
+	if user.Password != Userinformation.Password {
+		c.JSON(401, gin.H{"message": "验证失败"})
 		return
 	}
 	c.JSON(200, gin.H{"message": "验证成功"})
@@ -115,30 +117,30 @@ func VerifyPassword(c *gin.Context) {
 // @Param password body model.Password true "password"
 // @Param token header string true "token"
 // @Success 200 "修改成功"
-// @Failure 400 "验证失败"
-// @Failure 401 "输入格式有误"
-// @Failure 402 "两次输入不一致"
-// @Failure 403 "修改失败"
+// @Failure 401 "验证失败"
+// @Failure 402 "输入格式有误"
+// @Failure 403 "两次输入不一致"
+// @Failure 400 "修改失败"
 // @Router /change_password/change [post]
 func ChangePassword(c *gin.Context) {
 	// var user model.User
 	token := c.Request.Header.Get("token")
 	phone, err := model.VerifyToken(token)
 	if err != nil {
-		c.JSON(400, gin.H{"message": "验证失败"})
+		c.JSON(401, gin.H{"message": "验证失败"})
 	}
 	var password model.Password
 	if err1 := c.BindJSON(&password); err1 != nil {
-		c.JSON(400, gin.H{"message": "输入格式有误"})
+		c.JSON(402, gin.H{"message": "输入格式有误"})
 		return
 	}
 	if password.ConfirmPassword != password.NewPassword {
-		c.JSON(400, gin.H{"message": "两次输入不一致"})
+		c.JSON(403, gin.H{"message": "两次输入不一致"})
 		return
 	} else {
-		err := model.DB.Table("user").Where("phone=?", phone).Updates(map[string]interface{}{"password": password.ConfirmPassword}).Error
+		err := model.ModifyPassword(phone, password.ConfirmPassword)
 		if err != nil {
-			c.JSON(403, gin.H{"message": "修改失败"})
+			c.JSON(400, gin.H{"message": "修改失败"})
 		}
 	}
 	c.JSON(200, gin.H{"message": "修改成功"})

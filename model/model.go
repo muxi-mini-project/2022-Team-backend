@@ -46,7 +46,8 @@ type Step struct {
 
 type Task struct {
 	TaskId     int    `json:"task_id" gorm:"column:id"`
-	TaskName   string `json:"name" `
+	TaskName   string `json:"name"`
+	CreatorId  int    `json:"creator_id"`
 	CreateTime string `json:"createtime" gorm:"column:create_time"`
 	StartTime  string `json:"start_time" gorm:"column:start_time"`
 	Deadline   string `json:"deadline"`
@@ -62,7 +63,7 @@ type UserTask struct {
 }
 
 type Password struct {
-	OldPassword     string `json:"OldPassword"`
-	NewPassword     string `json:"NewPassword"`
-	ConfirmPassword string `json:"ConfirmPassword"`
+	OldPassword     string `json:"old_password"`
+	NewPassword     string `json:"new_password"`
+	ConfirmPassword string `json:"confirm_password"`
 }

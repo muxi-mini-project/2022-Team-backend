@@ -18,9 +18,9 @@ import (
 // @Param token header string true "token"
 // @Param team_id path string true "team_id"
 // @Success 200
-// @Failure 404 "身份验证失败"
-// @Failure 400 "格式错误"
-// @Failure 401 "创建失败"
+// @Failure 401 "身份验证失败"
+// @Failure 404 "格式错误"
+// @Failure 400 "创建失败"
 // @Router /create_project
 
 func CreateProject(c *gin.Context) {
@@ -46,7 +46,7 @@ func CreateProject(c *gin.Context) {
 	fmt.Println(project.TeamId)
 	// if _, a := model.IfExistTeamname(teamInfo.TeamName); a != 1 {
 	// 	c.JSON(200, gin.H{
-	// 		"message": "对不起，该团队名已被注册",
+	// 		"message": "对不起，该项目名已被使用",
 	// 	})
 	// 	return
 	// }
@@ -64,20 +64,21 @@ func CreateProject(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param token header string true "token"
-// @Param team path string true "team"
+// @Param pId path string true "pId"
 // @Success 200
-// @Failure 404 "身份验证失败"
-// @Failure 400 "格式错误"
-// @Failure 401 "创建失败"
-// @Router /create_task
+// @Failure 401 "身份验证失败"
+// @Failure 404 "格式错误"
+// @Failure 400 "创建失败"
+// @Router /create_step/:pId
 func CreateStep(c *gin.Context) {
 	var step model.Step
-	err1 := c.BindJSON(&step)
-	if err1 != nil {
+	err := c.BindJSON(&step)
+	if err != nil {
 		c.JSON(400, gin.H{"message": "格式错误"})
 		return
 	}
-	step.ProjectId, _ = strconv.Atoi(c.Param("Pid"))
+	//if里声明的变量是局部变量
+	step.ProjectId, _ = strconv.Atoi(c.Param("pId"))
 	if err := model.AddStep(step.StepName, step.ProjectId); err != nil {
 		c.JSON(401, gin.H{"message": "新建步骤失败"})
 		return
@@ -86,4 +87,84 @@ func CreateStep(c *gin.Context) {
 		"message": "步骤创建成功",
 		"stepid":  step.StepId,
 	})
+}
+
+// @Summary "删除项目"
+// @Description "删除一个项目"
+// @Tags project
+// @Accept json
+// @Produce json
+// @Param token header string true "token"
+// @Param pId path string true "pId"
+// @Success 200
+// @Failure 401 "身份验证失败"
+// @Failure 404 "获取失败"
+// @Failure 403 "无权删除"
+// @Failure 400 "删除失败"
+// @Router /delete_project/:pId [put]
+func DeleteProject(c *gin.Context) {
+	token := c.Request.Header.Get("token")
+	phone, err0 := model.VerifyToken(token)
+	if err0 != nil {
+		c.JSON(401, gin.H{"message": "身份验证失败"})
+		return
+	}
+	userInfo, err := model.GetUserInfo(phone)
+	if err != nil {
+		c.JSON(404, gin.H{"message": "获取失败"})
+	}
+	pId := c.Param("pId")
+	// pId,_ := strconv.Atoi(temp)
+	project, _ := model.GetProjectInfo(pId)
+	if userInfo.UserId != project.CreatorId {
+		c.JSON(403, gin.H{"message": "对不起，非创建人无法删除项目"})
+	} else {
+		if err := model.RemoveProject(pId); err != nil {
+			c.JSON(400, gin.H{"message": "删除失败"})
+			return
+		}
+		c.JSON(200, gin.H{"message": "删除成功"})
+	}
+
+}
+
+// @Summary "修改项目"
+// @Description "创建人修改一个项目"
+// @Tags project
+// @Accept json
+// @Produce json
+// @Param token header string true "token"
+// @Param pId path string true "pId"
+// @Success 200
+// @Failure 401 "身份验证失败"
+// @Failure 404 "获取失败"
+// @Failure 403 "无权删除"
+// @Failure 400 "删除失败"
+// @Router /modify_project/:pId [put]
+func ModifyProject(c *gin.Context) {
+	// var project model.Project
+	token := c.Request.Header.Get("token")
+	phone, err0 := model.VerifyToken(token)
+	if err0 != nil {
+		c.JSON(401, gin.H{"message": "身份验证失败"})
+		return
+	}
+	userInfo, _ := model.GetUserInfo(phone)
+	pId := c.Param("pId")
+	// pId,_ := strconv.Atoi(temp)
+	project2, _ := model.GetProjectInfo(pId)
+	if userInfo.UserId != project2.CreatorId {
+		c.JSON(403, gin.H{"message": "对不起，非创建人无法修改项目"})
+	} else {
+		err := c.BindJSON(project2)
+		if err != nil {
+			fmt.Println(err)
+		}
+		if err := model.ChangeProjectInfo(project2); err != nil {
+			c.JSON(400, gin.H{"message": "修改失败"})
+			return
+		}
+		c.JSON(200, gin.H{"message": "修改成功"})
+
+	}
 }

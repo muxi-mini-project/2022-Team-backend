@@ -19,7 +19,6 @@ import (
 // @Router /user [post]
 
 func User(c *gin.Context) {
-
 	var user model.User
 	if err := c.BindJSON(&user); err != nil {
 		c.JSON(400, gin.H{
@@ -95,7 +94,7 @@ func InitUserInfo(c *gin.Context) {
 // @Param user body model.Userinfo true "user"
 // @Success 200 {object} model.Token "登陆成功"
 // @Failure 400 "输入格式错误"
-// @Failure 404 "用户不存在"
+// @Failure 401 "用户不存在"
 // @Failure 401 "密码错误"
 // @Router /login[post]
 

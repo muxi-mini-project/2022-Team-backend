@@ -59,11 +59,13 @@ drop table if exists task;
 create table task(
     id int primary key auto_increment,
     name varchar(255) not null,
+    creator_id int not null,
     create_time varchar(255) not null,
     start_time varchar(255) not null,
     deadline varchar(255) not null,
     remark varchar(255) not null,
     step_id varchar(255) not null,
+    foreign key (creator) references user(id)
     foreign key (step_id) references step(id)
 );
 
