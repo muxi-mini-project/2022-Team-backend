@@ -68,20 +68,78 @@ func ChangeInfomation(c *gin.Context) {
 			return
 		}
 	}
-	// if user.Password == "" {
-	// 	c.JSON(400, gin.H{"message": "密码不可为空!"})
-	// 	return
-	// }
-	// //for range 键值循环
-	// for _, num := range user.Password {
-	// 	if string(num) == " " {
-	// 		c.JSON(400, gin.H{"message": "密码中不可含有空格"})
-	// 		return
-	// 	}
-	// }
 	if err2 := model.ChangeUserInfo(user); err2 != nil {
 		c.JSON(400, gin.H{"message": "修改失败"})
 		return
+	}
+	c.JSON(200, gin.H{"message": "修改成功"})
+}
+
+// @Summary “验证用户密码”
+// @Description “修改密码前对密码的验证功能”
+// @Tags my
+// @Accept json
+// @Produce json
+// @Param user.Password body model.Uer true "user.Password"
+// @Param token header string true "token"
+// @Success 200 "验证成功"
+// @Failure 401 "验证失败"
+// @Router /change_password/verify [get]
+func VerifyPassword(c *gin.Context) {
+	var user model.User
+	token := c.Request.Header.Get("token")
+	phone, err := model.VerifyToken(token)
+	if err != nil {
+		c.JSON(401, gin.H{"message": "验证失败"})
+	}
+	Userinformation, err := model.GetUserInfo(phone)
+	if err != nil {
+		c.JSON(404, gin.H{"message": "获取失败"})
+	}
+	if err1 := c.BindJSON(&user.Password); err1 != nil {
+		c.JSON(400, gin.H{"message": "输入格式有误"})
+		return
+	}
+	if user.Password != Userinformation.Phone {
+		c.JSON(400, gin.H{"message": "验证失败"})
+		return
+	}
+	c.JSON(200, gin.H{"message": "验证成功"})
+}
+
+// @Summary “修改用户密码”
+// @Description “修改密码”
+// @Tags my
+// @Accept json
+// @Produce json
+// @Param password body model.Password true "password"
+// @Param token header string true "token"
+// @Success 200 "修改成功"
+// @Failure 400 "验证失败"
+// @Failure 401 "输入格式有误"
+// @Failure 402 "两次输入不一致"
+// @Failure 403 "修改失败"
+// @Router /change_password/change [post]
+func ChangePassword(c *gin.Context) {
+	// var user model.User
+	token := c.Request.Header.Get("token")
+	phone, err := model.VerifyToken(token)
+	if err != nil {
+		c.JSON(400, gin.H{"message": "验证失败"})
+	}
+	var password model.Password
+	if err1 := c.BindJSON(&password); err1 != nil {
+		c.JSON(400, gin.H{"message": "输入格式有误"})
+		return
+	}
+	if password.ConfirmPassword != password.NewPassword {
+		c.JSON(400, gin.H{"message": "两次输入不一致"})
+		return
+	} else {
+		err := model.DB.Table("user").Where("phone=?", phone).Updates(map[string]interface{}{"password": password.ConfirmPassword}).Error
+		if err != nil {
+			c.JSON(403, gin.H{"message": "修改失败"})
+		}
 	}
 	c.JSON(200, gin.H{"message": "修改成功"})
 }

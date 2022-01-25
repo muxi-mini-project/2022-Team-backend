@@ -59,7 +59,6 @@ drop table if exists task;
 create table task(
     id int primary key auto_increment,
     name varchar(255) not null,
-    date varchar(255) not null,
     create_time varchar(255) not null,
     start_time varchar(255) not null,
     deadline varchar(255) not null,
@@ -71,7 +70,7 @@ create table task(
 drop table if exists user_task;
 create table user_task(
     id int primary key auto_increment,
-    principal_id varchar(255) not null,
+    principal_id int not null,
     task_id int not null,
     performance varchar(5),
     foreign key (principal_id) references user(id),

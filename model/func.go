@@ -192,7 +192,7 @@ func AddStep(name string, Pid int) error {
 }
 
 //获取团队成员id
-func GetTeamMenberId(Tid int) []string {
+func GetTeamMenberId(Tid string) []string {
 	var Id []string
 	var userTeam []UserTeam
 	if err := DB.Table("user_team").Where("team_id=?", Tid).Find(&userTeam).Error; err != nil {
@@ -208,10 +208,71 @@ func GetTeamMenberId(Tid int) []string {
 }
 
 //获取团队成员名字
-func GetTeamMenberName(UsersId []string) ([]User, error) {
+func GetTeamMenberName(UsersId []string) ([]string, error) {
+	var name []string
 	var users []User
 	if err := DB.Table("user").Where("user_id in (?)", UsersId).Find(&users).Error; err != nil {
 		return nil, err
+	} else {
+		fmt.Println(users)
+		for _, Info := range users {
+			name = append(name, string(Info.NickName))
+		}
+		return name, nil
 	}
-	return users, err
+}
+
+//布置任务
+func AssginIntoTable(UId int, Tid int, performance bool) error {
+	UT := UserTask{UserId: UId, TaskId: Tid, Performance: performance}
+	if err := DB.Table("user_task").Create(&UT).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+//获取完成的任务
+func GenToDoList(Uid int) []UserTask {
+	var Id []string
+	var userTask []UserTask
+	var userTask2 []UserTask
+	if err := DB.Table("user_task").Where("principal_id=? and performance=?", Uid, false).Find(&userTask).Error; err != nil {
+		log.Println(err)
+	} else {
+		fmt.Println(userTask)
+		for _, id := range userTask {
+			Id = append(Id, string(id.TaskId))
+		}
+		for _, id2 := range Id {
+
+			if err2 := DB.Table("task").Where("id=?", id2).Find(&userTask2).Error; err != nil {
+				log.Println(err2)
+				return nil
+			}
+		}
+	}
+	return userTask2
+}
+
+//获取未完成的任务
+func GenDoneList(Uid int) []UserTask {
+	var Id []string
+	var userTask []UserTask
+	var userTask2 []UserTask
+	if err := DB.Table("user_task").Where("principal_id=? and performance=?", Uid, true).Find(&userTask).Error; err != nil {
+		log.Println(err)
+	} else {
+		fmt.Println(userTask)
+		for _, id := range userTask {
+			Id = append(Id, string(id.TaskId))
+		}
+		for _, id2 := range Id {
+
+			if err2 := DB.Table("task").Where("id=?", id2).Find(&userTask2).Error; err != nil {
+				log.Println(err2)
+				return nil
+			}
+		}
+	}
+	return userTask2
 }

@@ -48,7 +48,6 @@ type Task struct {
 	TaskId     int    `json:"task_id" gorm:"column:id"`
 	TaskName   string `json:"name" `
 	CreateTime string `json:"createtime" gorm:"column:create_time"`
-	Date       string `json:"date"`
 	StartTime  string `json:"start_time" gorm:"column:start_time"`
 	Deadline   string `json:"deadline"`
 	Remark     string `json:"remark"`
@@ -58,6 +57,12 @@ type Task struct {
 type UserTask struct {
 	Id          int  `json:"id"`
 	UserId      int  `json:"principal_id" gorm:"column:principal_id"`
-	TaskID      int  `json:"task_id" gorm:"column:task_id"`
+	TaskId      int  `json:"task_id" gorm:"column:task_id"`
 	Performance bool `json:"performance"`
+}
+
+type Password struct {
+	OldPassword     string `json:"OldPassword"`
+	NewPassword     string `json:"NewPassword"`
+	ConfirmPassword string `json:"ConfirmPassword"`
 }
