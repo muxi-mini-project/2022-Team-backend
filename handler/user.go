@@ -1,9 +1,9 @@
 package handler
 
 import (
-	"2022-TEAM-BACKEND/model"
 	"fmt"
 	"strconv"
+	"team/model"
 
 	"github.com/gin-gonic/gin"
 )
@@ -119,10 +119,10 @@ func Login(c *gin.Context) {
 	} else {
 		// user.UserId = model.GetId{user.Phone}
 		c.JSON(200, gin.H{
-			"message": "登陆成功",
-			"token":   model.GenerateToken(user.Phone),
+			"message": "登陆成功,请将token放到请求头中",
+			"token":   model.GenerateToken(user.UserId),
 		})
-		token := model.GenerateToken(user.Phone)
+		token := model.GenerateToken(user.UserId)
 		fmt.Println(token)
 		return
 	}

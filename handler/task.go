@@ -2,9 +2,9 @@ package handler
 
 //需要在路径里输入team名
 import (
-	"2022-TEAM-BACKEND/model"
 	"fmt"
 	"strconv"
+	"team/model"
 
 	// "log"
 
@@ -17,11 +17,11 @@ import (
 // @Accept json
 // @Produce json
 // @Param token header string true "token"
-// @Param team path string true "team"
+// @Param step_id path string true "step_id"
 // @Success 200
 // @Failure 404 "格式错误"
 // @Failure 400 "创建失败"
-// @Router //create_task/step [post]
+// @Router //create_task/step_id [post]
 
 func CreateTask(c *gin.Context) {
 	token := c.Request.Header.Get("token")
@@ -40,7 +40,7 @@ func CreateTask(c *gin.Context) {
 	if err2 != nil {
 		c.JSON(401, gin.H{"message": "格式错误"})
 	}
-
+	task.StepId, _ = strconv.Atoi(c.Param("step_id"))
 	if err := model.DB.Table("task").Create(&task).Error; err != nil {
 		fmt.Println("任务创建出错" + err.Error()) //err.Error打印错误
 		return
@@ -57,18 +57,18 @@ func CreateTask(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param toekn header string true "token"
-// @Param Pid path string true "Pid"
-// @Param TaskId path string true "TaskId"
+// @Param project_id path string true "project_id"
+// @Param task_id path string true "task_id"
 // @Success 200
 // @Failure 404 "获取失败"
-// @Router /Assign_task/:Pid [get]
-// @Router /Assign_task/:Pid/:TaskId [post]
+// @Router /Assign_task/:project_id [get]
+// @Router /Assign_task/:project_id/:task_id [post]
 //这个函数得改一下
 //显示团队成员昵称(打对钩选人那个)
 //局部变量用小驼峰
 func AssignTasks(c *gin.Context) {
-	pId := c.Param("Pid")
-	memberId := model.GetTeamMenberId(pId)
+	project_id := c.Param("project_id")
+	memberId := model.GetTeamMenberId(project_id)
 	memberInfo, err := model.GetTeamMenberName(memberId)
 	if err != nil {
 		c.JSON(404, gin.H{"message": "获取失败"})
@@ -87,7 +87,7 @@ func AssignTasks(c *gin.Context) {
 		}
 	}
 	//分配任务
-	temp := c.Param("TaskId")
+	temp := c.Param("task_id")
 	tId, _ := strconv.Atoi(temp)
 	for _, aId := range assignId {
 		temp2, _ := strconv.Atoi(aId)
@@ -123,7 +123,7 @@ func DeleteTask(c *gin.Context) {
 		c.JSON(404, gin.H{"message": "获取失败"})
 	}
 	taskId := c.Param("task_id")
-	// pId,_ := strconv.Atoi(temp)
+	// project_id,_ := strconv.Atoi(temp)
 	task, _ := model.GetTaskInfo(taskId)
 	if userInfo.UserId != task.CreatorId {
 		c.JSON(403, gin.H{"message": "对不起，非创建人无法删除任务"})
@@ -149,7 +149,7 @@ func DeleteTask(c *gin.Context) {
 // @Failure 404 "获取失败"
 // @Failure 403 "无权删除"
 // @Failure 400 "删除失败"
-// @Router /modify_project/:pId [put]
+// @Router /modify_task/:task_id [put]
 //分配任务就按之前分配任务的那个接口去搞
 func ModifyTask(c *gin.Context) {
 	// var project model.Project
@@ -161,7 +161,7 @@ func ModifyTask(c *gin.Context) {
 	}
 	userInfo, _ := model.GetUserInfo(phone)
 	taskId := c.Param("task_id")
-	// pId,_ := strconv.Atoi(temp)
+	// project_id,_ := strconv.Atoi(temp)
 	task, _ := model.GetTaskInfo(taskId)
 	if userInfo.UserId != task.CreatorId {
 		c.JSON(403, gin.H{"message": "对不起，非创建人无法修改任务"})

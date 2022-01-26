@@ -1,16 +1,18 @@
 package model
 
+import "database/sql"
+
 //注意go语言驼峰式格式
 //gorm:"column:id",是为为对应的sql语句中的字段起名字。gorm自动生成sql时大写字母转小写还会生成下划线
 //id应该都设为int不然输不进去数据
 //前端传数据时一定要传有json的tag的数据
 type User struct {
-	UserId   int    `json:"user_id" gorm:"column:id"`
-	Phone    string `json:"phone"`
-	NickName string `json:"nickname" gorm:"column:nickname"`
-	Avatar   string `json:"avatar"`
-	Password string `json:"password"`
-	Feedback string `json:"feedback"`
+	UserId   int            `json:"user_id" gorm:"column:id"`
+	Phone    string         `json:"phone"`
+	NickName string         `json:"nickname" gorm:"column:nickname"`
+	Avatar   sql.NullString `json:"avatar"`
+	Password string         `json:"password"`
+	Feedback string         `json:"feedback"`
 }
 
 type Team struct {

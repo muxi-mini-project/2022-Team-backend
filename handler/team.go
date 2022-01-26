@@ -1,9 +1,9 @@
 package handler
 
 import (
-	"2022-TEAM-BACKEND/model"
 	"fmt"
 	"log"
+	"team/model"
 
 	"github.com/gin-gonic/gin"
 )

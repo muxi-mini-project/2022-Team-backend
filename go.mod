@@ -1,4 +1,4 @@
-module 2022-TEAM-BACKEND
+module team
 
 //这里写什么引入本地包时就写什么
 go 1.17

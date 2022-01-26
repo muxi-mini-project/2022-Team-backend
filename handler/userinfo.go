@@ -1,8 +1,16 @@
 package handler
 
 import (
-	"2022-TEAM-BACKEND/model"
+	"database/sql"
 	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"path/filepath"
+	"strconv"
+	"team/model"
+	"team/utils"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -48,7 +56,7 @@ func Userinfo(c *gin.Context) {
 func ChangeInfomation(c *gin.Context) {
 	var user model.User
 	token := c.Request.Header.Get("token")
-	phone, err := model.VerifyToken(token)
+	id, err := model.VerifyToken(token)
 	if err != nil {
 		c.JSON(401, gin.H{"message": "验证失败"})
 	}
@@ -56,7 +64,8 @@ func ChangeInfomation(c *gin.Context) {
 		c.JSON(400, gin.H{"message": "输入格式有误"})
 		return
 	}
-	user.Phone = phone
+	oldInfo, _ := model.GetUserInfo(id)
+	user.Phone = oldInfo.Phone
 	if user.NickName == "" {
 		c.JSON(400, gin.H{"message": "用户名不可为空!"})
 		return
@@ -125,7 +134,7 @@ func VerifyPassword(c *gin.Context) {
 func ChangePassword(c *gin.Context) {
 	// var user model.User
 	token := c.Request.Header.Get("token")
-	phone, err := model.VerifyToken(token)
+	id, err := model.VerifyToken(token)
 	if err != nil {
 		c.JSON(401, gin.H{"message": "验证失败"})
 	}
@@ -138,10 +147,56 @@ func ChangePassword(c *gin.Context) {
 		c.JSON(403, gin.H{"message": "两次输入不一致"})
 		return
 	} else {
-		err := model.ModifyPassword(phone, password.ConfirmPassword)
+		err := model.ModifyPassword(id, password.ConfirmPassword)
 		if err != nil {
 			c.JSON(400, gin.H{"message": "修改失败"})
 		}
 	}
 	c.JSON(200, gin.H{"message": "修改成功"})
+}
+
+func ModifyProfile(c *gin.Context) {
+	var user model.User
+	if err := c.ShouldBind(&user); err != nil {
+		c.HTML(http.StatusOK, "error.tmpl", gin.H{
+			"error": err.Error(),
+		})
+		log.Panicln("绑定发生错误", err.Error())
+	}
+	file, err := c.FormFile("avatar-file")
+	if err != nil {
+		c.HTML(http.StatusOK, "error.tmpl", gin.H{
+			"error": err.Error(),
+		})
+		log.Panicln("文件上传错误", err.Error())
+	}
+	path := utils.RootPath()
+	path = filepath.Join(path, "avatar")
+	fmt.Println("path = >", path)
+	err = os.MkdirAll(path, os.ModePerm)
+	if err != nil {
+		c.HTML(http.StatusOK, "error.tmpl", gin.H{
+			"error": err,
+		})
+		log.Panicln("无法创建文件夹", err.Error())
+	}
+	fileName := strconv.FormatInt(time.Now().Unix(), 10) + file.Filename
+	err = c.SaveUploadedFile(file, filepath.Join(path, fileName))
+	if err != nil {
+		c.HTML(http.StatusOK, "error.tmpl", gin.H{
+			"error": err,
+		})
+		log.Panicln("无法保存文件", err.Error())
+	}
+	avatarUrl := "/avatar/" + fileName
+	user.Avatar = sql.NullString{String: avatarUrl}
+	err = model.UpdateAvator(user.UserId)
+	if err != nil {
+		c.HTML(http.StatusOK, "error.tmpl", gin.H{
+			"error": err,
+		})
+		log.Panicln("数据无法更新", err.Error())
+	}
+	id := strconv.Itoa(user.UserId)
+	c.Redirect(http.StatusMovedPermanently, "/user/profile?id="+id)
 }

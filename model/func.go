@@ -22,13 +22,15 @@ func Register(phone string, password string) string {
 }
 
 //初始化信息
-func InitInfo(id int, nickname string, avatar string) error {
-	user := User{UserId: id, NickName: nickname, Avatar: avatar}
-	if err := DB.Table("user").Where("id = ?", user.UserId).Updates(map[string]interface{}{"nickname": user.NickName, "avatar": user.Avatar}).Error; err != nil {
+func InitInfo(id int, nickname string) error {
+	user := User{UserId: id, NickName: nickname}
+	if err := DB.Table("user").Where("id = ?", user.UserId).Updates(map[string]interface{}{"nickname": user.NickName}).Error; err != nil {
 		return err
 	}
 	return nil
 }
+
+//初始化头像
 
 //防止电话重复绑定331,如果有这条数据则说明该电话号码已被注册
 func IfExistUserPhone(phone string) (error, int) {
@@ -83,8 +85,8 @@ func VerifyPassword(phone string, password string) bool {
 //生成token与验证
 
 type jwtClaims struct {
-	jwt.StandardClaims        //jwt-go包预定义的一些字段
-	Phone              string `json:"phone"`
+	jwt.StandardClaims     //jwt-go包预定义的一些字段
+	Id                 int `json:"id"`
 }
 
 var (
@@ -93,9 +95,9 @@ var (
 )
 
 //我自己往token里写进去的只有phone
-func GenerateToken(phone string) string {
+func GenerateToken(id int) string {
 	claims := &jwtClaims{
-		Phone: phone,
+		Id: id,
 	}
 	//签发者和过期时间
 	claims.IssuedAt = time.Now().Unix()
@@ -119,28 +121,28 @@ func genToken(claims jwtClaims) (string, error) {
 }
 
 //验证token
-func VerifyToken(token string) (string, error) {
+func VerifyToken(token string) (int, error) {
 	TempToken, err := jwt.ParseWithClaims(token, &jwtClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(key), nil
 	})
 	if err != nil {
-		return "", errors.New("token解析失败")
+		return 0, errors.New("token解析失败")
 	}
 	claims, ok := TempToken.Claims.(*jwtClaims)
 	if !ok {
-		return "", errors.New("发生错误")
+		return 0, errors.New("发生错误")
 	}
 	if err := TempToken.Claims.Valid(); err != nil {
-		return "", errors.New("发生错误")
+		return 0, errors.New("发生错误")
 	}
-	fmt.Println(claims.Phone)
-	return claims.Phone, nil
+	fmt.Println(claims.Id)
+	return claims.Id, nil
 }
 
 //获取用户信息
-func GetUserInfo(phone string) (User, error) {
+func GetUserInfo(uid int) (User, error) {
 	var user User
-	if err := DB.Table("user").Where("phone=?", phone).Find(&user).Error; err != nil {
+	if err := DB.Table("user").Where("id=?", uid).Find(&user).Error; err != nil {
 		return User{}, err
 	}
 	return user, nil
@@ -281,8 +283,8 @@ func GenDoneList(Uid int) []UserTask {
 }
 
 //修改密码
-func ModifyPassword(phone string, newPassword string) error {
-	err := DB.Table("user").Where("phone=?", phone).Updates(map[string]interface{}{"password": newPassword}).Error
+func ModifyPassword(id int, newPassword string) error {
+	err := DB.Table("user").Where("id=?", id).Updates(map[string]interface{}{"password": newPassword}).Error
 	if err != nil {
 		return err
 	}
@@ -352,6 +354,15 @@ func ChangeProjectInfo(project Project) error {
 //修改任务信息
 func ChangeTaskInfo(task Task) error {
 	if err := DB.Table("task").Where("id=?", task.TaskId).Updates(map[string]interface{}{"name": task.TaskName, "start_time": task.StartTime, "deadline": task.Deadline, "remark": task.Remark}).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+//修改用户头像
+func UpdateAvator(id int) error {
+	var user User
+	if err := DB.Table("user").Where("id = ?", id).Update("avatar", user.Avatar).Error; err != nil {
 		return err
 	}
 	return nil

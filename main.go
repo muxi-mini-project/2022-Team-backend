@@ -1,10 +1,10 @@
 package main
 
 import (
-	"2022-TEAM-BACKEND/config"
-	"2022-TEAM-BACKEND/model"
-	"2022-TEAM-BACKEND/router"
 	"fmt"
+	"team/config"
+	"team/model"
+	"team/router"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/spf13/viper"
