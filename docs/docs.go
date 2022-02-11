@@ -23,7 +23,1255 @@ var doc = `{
     },
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
-    "paths": {}
+    "paths": {
+        "/info/donelist": {
+            "get": {
+                "description": "“获取已完成任务”",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tasklist"
+                ],
+                "summary": "“已完成任务”",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    },
+                    "400": {
+                        "description": "获取失败"
+                    },
+                    "401": {
+                        "description": "验证失败"
+                    }
+                }
+            }
+        },
+        "/info/donetask": {
+            "put": {
+                "description": "“取消对钩”",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tasklist"
+                ],
+                "summary": "“取消任务的完成”",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "任务id",
+                        "name": "task_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    },
+                    "401": {
+                        "description": "验证失败"
+                    }
+                }
+            }
+        },
+        "/info/donetask/:task_id": {
+            "put": {
+                "description": "“打对钩完成任务”",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tasklist"
+                ],
+                "summary": "“完成任务”",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "任务id",
+                        "name": "task_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "任务完成"
+                    },
+                    "401": {
+                        "description": "验证失败"
+                    }
+                }
+            }
+        },
+        "/info/todolist": {
+            "get": {
+                "description": "“获取未完成任务”",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tasklist"
+                ],
+                "summary": "“任务待办”",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    },
+                    "400": {
+                        "description": "获取失败"
+                    },
+                    "401": {
+                        "description": "身份验证失败"
+                    }
+                }
+            }
+        },
+        "/login": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "\"登录\"",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "user",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.User"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "登陆成功"
+                    },
+                    "400": {
+                        "description": "输入格式错误"
+                    },
+                    "401": {
+                        "description": "密码错误"
+                    },
+                    "404": {
+                        "description": "用户不存在"
+                    }
+                }
+            }
+        },
+        "/task/:task_id": {
+            "delete": {
+                "description": "\"删除一个任务\"",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "task"
+                ],
+                "summary": "\"删除任务\"",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "task_id",
+                        "name": "task_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "删除成功"
+                    },
+                    "400": {
+                        "description": "删除失败"
+                    },
+                    "401": {
+                        "description": "身份验证失败"
+                    }
+                }
+            }
+        },
+        "/task/pro_step_info/:team_id": {
+            "get": {
+                "description": "\"在新建任务界面选择项目后(填入项目名称)返回步骤\"",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "task"
+                ],
+                "summary": "\"项目对应的步骤\"",
+                "parameters": [
+                    {
+                        "description": "项目名称",
+                        "name": "pro",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.Project"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "team_id",
+                        "name": "team_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    },
+                    "400": {
+                        "description": "获取失败"
+                    }
+                }
+            }
+        },
+        "/task/team_info/:team_id": {
+            "get": {
+                "description": "\"获取项目任务新建所需的团队成员和项目名称\"",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "task"
+                ],
+                "summary": "\"获取任务编辑页面需要的信息\"",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "team_id",
+                        "name": "team_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功"
+                    },
+                    "400": {
+                        "description": "获取失败"
+                    }
+                }
+            }
+        },
+        "/team": {
+            "get": {
+                "description": "\"刚登陆后的第一个界面\"",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "team"
+                ],
+                "summary": "\"查看用户加入的所有团队\"",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    },
+                    "400": {
+                        "description": "获取失败"
+                    },
+                    "401": {
+                        "description": "身份验证失败"
+                    }
+                }
+            },
+            "post": {
+                "description": "\"创建一个新的团队\"",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "team"
+                ],
+                "summary": "\"创建团队\"",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "teamInfo",
+                        "name": "teamInfo",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.Team"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "团队创建成功"
+                    },
+                    "400": {
+                        "description": "创建失败"
+                    },
+                    "401": {
+                        "description": "身份验证失败"
+                    }
+                }
+            }
+        },
+        "/team/:team_id": {
+            "get": {
+                "description": "\"单击团队名查看团队信息\"",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "team"
+                ],
+                "summary": "\"查看团队\"",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "team_id",
+                        "name": "team_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    },
+                    "400": {
+                        "description": "获取失败"
+                    },
+                    "401": {
+                        "description": "身份验证失败"
+                    }
+                }
+            }
+        },
+        "/team/paticipation": {
+            "post": {
+                "description": "\"加入一个新的团队\"",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "team"
+                ],
+                "summary": "\"加入团队\"",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "team",
+                        "name": "team",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.UserTeam"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "加入成功"
+                    },
+                    "400": {
+                        "description": "加入失败"
+                    },
+                    "401": {
+                        "description": "身份验证失败"
+                    }
+                }
+            }
+        },
+        "/team/project/:project_id": {
+            "get": {
+                "description": "\"单击编辑查看项目信息\"",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "project"
+                ],
+                "summary": "\"查看项目\"",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "project_id",
+                        "name": "project_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功"
+                    },
+                    "401": {
+                        "description": "身份验证失败"
+                    },
+                    "404": {
+                        "description": "获取失败"
+                    }
+                }
+            },
+            "put": {
+                "description": "\"创建人修改一个项目\"",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "project"
+                ],
+                "summary": "\"修改项目\"",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "project_id",
+                        "name": "project_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "修改成功"
+                    },
+                    "400": {
+                        "description": "删除失败"
+                    },
+                    "401": {
+                        "description": "身份验证失败"
+                    }
+                }
+            },
+            "delete": {
+                "description": "\"删除一个项目\"",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "project"
+                ],
+                "summary": "\"删除项目\"",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "project_id",
+                        "name": "project_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    },
+                    "400": {
+                        "description": "删除失败"
+                    },
+                    "401": {
+                        "description": "身份验证失败"
+                    }
+                }
+            }
+        },
+        "/team/task/:task_id": {
+            "get": {
+                "description": "\"编辑前查看任务信息\"",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "project"
+                ],
+                "summary": "\"查看任务\"",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "task_id",
+                        "name": "task_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    },
+                    "400": {
+                        "description": "获取失败"
+                    },
+                    "401": {
+                        "description": "身份验证失败"
+                    }
+                }
+            }
+        },
+        "/team/task/:task_id/:team_id": {
+            "put": {
+                "description": "\"创建人修改一个任务\"",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "project"
+                ],
+                "summary": "\"修改任务\"",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "task_id",
+                        "name": "task_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "填入需要修改的信息",
+                        "name": "task",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.Task"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "修改成功"
+                    },
+                    "400": {
+                        "description": "删除失败"
+                    },
+                    "401": {
+                        "description": "身份验证失败"
+                    }
+                }
+            }
+        },
+        "/team/task/:team_id": {
+            "post": {
+                "description": "\"项目任务新建\"",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "task"
+                ],
+                "summary": "\"创建任务并分配\"",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "team_id",
+                        "name": "step_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "注意填入的成员是结构体",
+                        "name": "task",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.Task"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    },
+                    "400": {
+                        "description": "创建失败"
+                    },
+                    "401": {
+                        "description": "身份验证失败"
+                    },
+                    "404": {
+                        "description": "格式错误"
+                    }
+                }
+            }
+        },
+        "/user": {
+            "post": {
+                "description": "\"注册一个新用户\"",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "\"注册\"",
+                "parameters": [
+                    {
+                        "description": "user",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.User"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "用户创建成功"
+                    },
+                    "400": {
+                        "description": "输入有误，格式错误"
+                    },
+                    "401": {
+                        "description": "电话号码重复"
+                    }
+                }
+            }
+        },
+        "/user/avatar": {
+            "put": {
+                "description": "\"修改用户头像\"",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "\"修改头像\"",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "文件",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "上传成功"
+                    },
+                    "400": {
+                        "description": "上传失败"
+                    },
+                    "401": {
+                        "description": "身份验证失败"
+                    }
+                }
+            }
+        },
+        "/user/change_password/change": {
+            "post": {
+                "description": "“修改密码”",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "userinfo"
+                ],
+                "summary": "“修改用户密码”",
+                "parameters": [
+                    {
+                        "description": "输入两次新密码",
+                        "name": "password",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.Password"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "修改成功"
+                    },
+                    "400": {
+                        "description": "修改失败"
+                    },
+                    "401": {
+                        "description": "验证失败"
+                    }
+                }
+            }
+        },
+        "/user/change_password/verify": {
+            "get": {
+                "description": "“修改密码前对密码的验证功能”",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "userinfo"
+                ],
+                "summary": "“验证用户密码”",
+                "parameters": [
+                    {
+                        "description": "输入密码",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.User"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "验证成功"
+                    },
+                    "400": {
+                        "description": "输入有误"
+                    },
+                    "401": {
+                        "description": "验证失败"
+                    }
+                }
+            }
+        },
+        "/user/feedback": {
+            "put": {
+                "description": "“用户反馈”",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "userinfo"
+                ],
+                "summary": "“用户反馈”",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "输入反馈信息",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.User"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "反馈成功"
+                    },
+                    "400": {
+                        "description": "输入格式有误"
+                    },
+                    "401": {
+                        "description": "验证失败"
+                    }
+                }
+            }
+        },
+        "/user/info": {
+            "put": {
+                "description": "“修改用户的基本信息”",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "userinfo"
+                ],
+                "summary": "“修改用户的信息”",
+                "parameters": [
+                    {
+                        "description": "user",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.User"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "输入昵称",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.User"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "修改成功"
+                    },
+                    "400": {
+                        "description": "修改失败"
+                    },
+                    "401": {
+                        "description": "验证失败"
+                    }
+                }
+            }
+        },
+        "/user/pupup": {
+            "post": {
+                "description": "\"再点击“完成设置”之前头像已经设置完，注册后弹窗里输入昵称\"",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "\"初始化用户信息\"",
+                "parameters": [
+                    {
+                        "description": "输入昵称",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.User"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "注册成功"
+                    },
+                    "400": {
+                        "description": "输入有误"
+                    },
+                    "401": {
+                        "description": "身份验证失败"
+                    }
+                }
+            }
+        },
+        "/user/pupup/avatar": {
+            "post": {
+                "description": "\"修改用户头像\"",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "\"修改头像\"",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "文件",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "上传成功"
+                    },
+                    "400": {
+                        "description": "上传失败"
+                    },
+                    "401": {
+                        "description": "身份验证失败"
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "model.Password": {
+            "type": "object",
+            "properties": {
+                "confirm_password": {
+                    "type": "string"
+                },
+                "new_password": {
+                    "type": "string"
+                },
+                "old_password": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.Project": {
+            "type": "object",
+            "properties": {
+                "create_time": {
+                    "type": "string"
+                },
+                "creator_id": {
+                    "type": "integer"
+                },
+                "deadline": {
+                    "type": "string"
+                },
+                "project_id": {
+                    "type": "integer"
+                },
+                "project_name": {
+                    "type": "string"
+                },
+                "remark": {
+                    "type": "string"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "step": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "team_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "model.Task": {
+            "type": "object",
+            "properties": {
+                "createtime": {
+                    "type": "string"
+                },
+                "creator_id": {
+                    "type": "integer"
+                },
+                "deadline": {
+                    "type": "string"
+                },
+                "member": {
+                    "description": "以下不是必要的，但方便实用",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "project": {
+                    "type": "string"
+                },
+                "remark": {
+                    "type": "string"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "step": {
+                    "type": "string"
+                },
+                "step_id": {
+                    "type": "integer"
+                },
+                "task_id": {
+                    "type": "integer"
+                },
+                "team_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "model.Team": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "type": "string"
+                },
+                "creator_id": {
+                    "type": "integer"
+                },
+                "team_coding": {
+                    "type": "string"
+                },
+                "team_id": {
+                    "type": "integer"
+                },
+                "teamname": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.User": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "type": "string"
+                },
+                "feedback": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "nickname": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "sha": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.UserTeam": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "team_id": {
+                    "type": "integer"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        }
+    }
 }`
 
 type swaggerInfo struct {
@@ -38,7 +1286,7 @@ type swaggerInfo struct {
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = swaggerInfo{
 	Version:     "1.0.0",
-	Host:        "localhost:8918",
+	Host:        "localhost:9918",
 	BasePath:    "",
 	Schemes:     []string{"http"},
 	Title:       "Team",

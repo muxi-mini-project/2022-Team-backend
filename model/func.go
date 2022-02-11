@@ -21,6 +21,15 @@ func Register(phone string, password string) string {
 	return Id
 }
 
+//获取用户信息
+func GetUserId(phone string) (User, error) {
+	var user User
+	if err := DB.Table("user").Where("phone=?", phone).Find(&user).Error; err != nil {
+		return User{}, err
+	}
+	return user, nil
+}
+
 //初始化信息
 func InitInfo(id int, nickname string) error {
 	user := User{UserId: id, NickName: nickname}
@@ -30,7 +39,14 @@ func InitInfo(id int, nickname string) error {
 	return nil
 }
 
-//初始化头像
+//用户反馈
+func UserFeedback(id int, feedback string) error {
+	user := User{UserId: id, Feedback: feedback}
+	if err := DB.Table("user").Where("id = ?", user.UserId).Updates(map[string]interface{}{"feedback": user.Feedback}).Error; err != nil {
+		return err
+	}
+	return nil
+}
 
 //防止电话重复绑定331,如果有这条数据则说明该电话号码已被注册
 func IfExistUserPhone(phone string) (error, int) {
@@ -81,7 +97,6 @@ func VerifyPassword(phone string, password string) bool {
 	return true
 }
 
-//phone唯一对应用户了，不需要获取用户id
 //生成token与验证
 
 type jwtClaims struct {
@@ -94,7 +109,7 @@ var (
 	ExpireTime = 604800 //token过期时间
 )
 
-//我自己往token里写进去的只有phone
+//我自己往token里写进去的只有id
 func GenerateToken(id int) string {
 	claims := &jwtClaims{
 		Id: id,
@@ -135,7 +150,7 @@ func VerifyToken(token string) (int, error) {
 	if err := TempToken.Claims.Valid(); err != nil {
 		return 0, errors.New("发生错误")
 	}
-	fmt.Println(claims.Id)
+	fmt.Println(claims.Id, "hhh")
 	return claims.Id, nil
 }
 
@@ -158,13 +173,13 @@ func ChangeUserInfo(user User) error {
 }
 
 //注册团队
-func RegisterTeam(teamName string, avatar string, creator_id int, teamCoding string) error {
-	team := Team{TeamName: teamName, Avatar: avatar, CreatorId: creator_id, TeamCoding: teamCoding}
+func RegisterTeam(teamName string, creator_id int, teamCoding string, avatar string) int {
+	team := Team{TeamName: teamName, CreatorId: creator_id, TeamCoding: teamCoding, Avatar: avatar}
 	if err := DB.Table("team").Create(&team).Error; err != nil {
 		fmt.Println("注册团队出错" + err.Error()) //err.Error打印错误
-		return err
+		return 0
 	}
-	return nil
+	return team.TeamId
 }
 
 //防止团队名重复
@@ -177,6 +192,8 @@ func IfExistTeamname(teamname string) (error, int) {
 	fmt.Println(temp)
 	return nil, 0
 }
+
+//加入团队
 func JoinTeam(userId int, teamId int) error {
 	team := UserTeam{UserId: userId, TeamId: teamId}
 	if err := DB.Table("user_team").Create(&team).Error; err != nil {
@@ -186,9 +203,49 @@ func JoinTeam(userId int, teamId int) error {
 	return nil
 }
 
+//获取团队信息GetTeamInfo
+func GetTeamInfo(id string) (Team, []User, error) {
+	var team Team
+	if err := DB.Table("team").Where("id=?", id).Find(&team).Error; err != nil {
+		return Team{}, []User{}, err
+	}
+	var uId []string
+	if err := DB.Table("user_team").Where("team_id=?", id).Select("user_id").Find(&uId).Error; err != nil {
+		return Team{}, []User{}, err
+	}
+	var userInfo []User
+	if err := DB.Table("user").Where("id in (?)", uId).Find(&userInfo).Error; err != nil {
+		return Team{}, []User{}, err
+	}
+	return team, userInfo, nil
+}
+
+//获取用户加入的所有团队
+func GetAllTeamInfo(id int) ([]Team, error) {
+	var tId []string
+	if err := DB.Table("user_team").Where("user_id=?", id).Select("team_id").Find(&tId).Error; err != nil {
+		return []Team{}, err
+	}
+	var teamInfo []Team
+	if err := DB.Table("team").Where("id in (?)", tId).Find(&teamInfo).Error; err != nil {
+		return []Team{}, err
+	}
+	return teamInfo, nil
+}
+
+//创建项目
+func CreatePro(proName string, creator_id int, startTime string, deadline string, remark string, teamId int) int {
+	project := Project{ProjectName: proName, CreatorId: creator_id, CreateTime: time.Now().Format("2006-01-02 15:04:00"), StartTime: startTime, Deadline: deadline, Remark: remark, TeamId: teamId}
+	if err := DB.Table("project").Create(&project).Error; err != nil {
+		fmt.Println("项目创建出错" + err.Error()) //err.Error打印错误
+		return 0
+	}
+	return project.ProjectId
+}
+
 //添加步骤信息
-func AddStep(name string, Pid int) error {
-	Step := Step{StepName: name, ProjectId: Pid}
+func AddStep(name string, pId int) error {
+	Step := Step{StepName: name, ProjectId: pId}
 	if err := DB.Table("step").Create(&Step).Error; err != nil {
 		return err
 	}
@@ -196,18 +253,21 @@ func AddStep(name string, Pid int) error {
 }
 
 //获取团队成员id
-//没查到不就return nil吗？没搞懂测试再说吧
-func GetTeamMenberId(Tid string) []string {
+//没查到return nil
+func GetTeamMenberId(tId string) []string {
 	var Id []string
 	var userTeam []UserTeam
-	if err := DB.Table("user_team").Where("team_id=?", Tid).Find(&userTeam).Error; err != nil {
+	var temp string
+	if err := DB.Table("user_team").Where("team_id=?", tId).Find(&userTeam).Error; err != nil {
 		log.Println(err)
 		return nil
 	} else {
 		fmt.Println(userTeam)
 		for _, id := range userTeam {
-			Id = append(Id, string(id.UserId))
+			temp = strconv.Itoa(id.UserId)
+			Id = append(Id, string(temp))
 		}
+		fmt.Println(Id)
 		return Id
 	}
 }
@@ -215,71 +275,110 @@ func GetTeamMenberId(Tid string) []string {
 //获取团队成员名字
 func GetTeamMenberName(UsersId []string) ([]string, error) {
 	var name []string
-	var users []User
-	if err := DB.Table("user").Where("user_id in (?)", UsersId).Find(&users).Error; err != nil {
+	if err := DB.Table("user").Where("id in (?)", UsersId).Select(("nickname")).Find(&name).Error; err != nil {
 		return nil, err
-	} else {
-		fmt.Println(users)
-		for _, Info := range users {
-			name = append(name, string(Info.NickName))
-		}
-		return name, nil
 	}
+	return name, nil
 }
 
-//布置任务
-func AssginIntoTable(UId int, Tid int, performance bool) error {
-	UT := UserTask{UserId: UId, TaskId: Tid, Performance: performance}
-	if err := DB.Table("user_task").Create(&UT).Error; err != nil {
-		return err
+//获取团队所有项目名
+func GetTeamPro(tId string) ([]string, error) {
+	fmt.Println(tId, "test")
+	var name []string
+	if err := DB.Table("project").Where("team_id =? ", tId).Select("name").Find(&name).Error; err != nil {
+		return nil, err
 	}
-	return nil
+	return name, nil
 }
 
-//获取完成的任务
-func GenToDoList(Uid int) []UserTask {
+//在新建任务界面选择项目后返回步骤(是不是把team_id加进来更好些？)
+func GetProStep(proName string, tId int) ([]string, error) {
+	var pId int
+	if err := DB.Table("project").Where("name = ? and team_id=? ", proName, tId).Select("id").Find(&pId).Error; err != nil {
+		return nil, err
+	}
+	var name []string
+	if err := DB.Table("step").Where("project_id =? ", pId).Select("name").Find(&name).Error; err != nil {
+		return nil, err
+	}
+	return name, nil
+}
+
+//获取项目步骤的id
+func GetProStepId(tId int, proName string, stepName string) (int, error) {
+	var pId int
+	if err := DB.Table("project").Where("name = ? and team_id = ?", proName, tId).Select("id").Find(&pId).Error; err != nil {
+		return 0, err
+	}
+	fmt.Println("274", pId)
+	var id int
+	if err := DB.Table("step").Where("project_id = ? and  name = ?", pId, stepName).Select("id").Find(&id).Error; err != nil {
+		return 0, err
+	}
+	fmt.Println("279", id)
+	return id, nil
+}
+
+//获取未完成的任务
+func GenToDoList(Uid int) ([]Task, []Team) {
 	var Id []string
 	var userTask []UserTask
-	var userTask2 []UserTask
+	var Task []Task
+	var team_id []string
+	var team []Team
 	if err := DB.Table("user_task").Where("principal_id=? and performance=?", Uid, false).Find(&userTask).Error; err != nil {
 		log.Println(err)
 	} else {
 		fmt.Println(userTask)
 		for _, id := range userTask {
-			Id = append(Id, string(id.TaskId))
+			temp := strconv.Itoa(id.TaskId)
+			Id = append(Id, temp)
 		}
-		for _, id2 := range Id {
-
-			if err2 := DB.Table("task").Where("id=?", id2).Find(&userTask2).Error; err != nil {
-				log.Println(err2)
-				return nil
-			}
+		if err := DB.Table("task").Where("id in (?)", Id).Find(&Task).Error; err != nil {
+			log.Println(err)
+			return nil, nil
+		}
+		if err := DB.Table("task").Where("id in (?)", Id).Select("team_id").Find(&team_id).Error; err != nil {
+			log.Println(err)
+			return nil, nil
+		}
+		if err := DB.Table("team").Where("id in (?)", team_id).Find(&team).Error; err != nil {
+			log.Println(err)
+			return nil, nil
 		}
 	}
-	return userTask2
+	return Task, team
 }
 
-//获取未完成的任务
-func GenDoneList(Uid int) []UserTask {
+//获取完成的任务
+func GenDoneList(Uid int) ([]Task, []Team) {
 	var Id []string
 	var userTask []UserTask
-	var userTask2 []UserTask
+	var Task []Task
+	var team_id []string
+	var team []Team
 	if err := DB.Table("user_task").Where("principal_id=? and performance=?", Uid, true).Find(&userTask).Error; err != nil {
 		log.Println(err)
 	} else {
 		fmt.Println(userTask)
 		for _, id := range userTask {
-			Id = append(Id, string(id.TaskId))
+			temp := strconv.Itoa(id.TaskId)
+			Id = append(Id, temp)
 		}
-		for _, id2 := range Id {
-
-			if err2 := DB.Table("task").Where("id=?", id2).Find(&userTask2).Error; err != nil {
-				log.Println(err2)
-				return nil
-			}
+		if err2 := DB.Table("task").Where("id in (?)", Id).Find(&Task).Error; err != nil {
+			log.Println(err2)
+			return nil, nil
+		}
+		if err := DB.Table("task").Where("id in (?)", Id).Select("team_id").Find(&team_id).Error; err != nil {
+			log.Println(err)
+			return nil, nil
+		}
+		if err := DB.Table("team").Where("id in (?)", team_id).Find(&team).Error; err != nil {
+			log.Println(err)
+			return nil, nil
 		}
 	}
-	return userTask2
+	return Task, team
 }
 
 //修改密码
@@ -292,34 +391,30 @@ func ModifyPassword(id int, newPassword string) error {
 }
 
 //完成任务
-func CompleteTask(id string) error {
-	if err := DB.Table("user_task").Where("id=?", id).Updates(map[string]interface{}{"performance": true}).Error; err != nil {
+func CompleteTask(id string, uId int) error {
+	if err := DB.Table("user_task").Where("task_id = ? and principal_id = ?", id, uId).Updates(map[string]interface{}{"performance": true}).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
 //取消完成状态
-func CancelComplete(id string) error {
-	if err := DB.Table("user_task").Where("id=?", id).Updates(map[string]interface{}{"performance": false}).Error; err != nil {
+func CancelComplete(id string, uId int) error {
+	if err := DB.Table("user_task").Where("task_id = ? and principal_id = ?", id, uId).Updates(map[string]interface{}{"performance": false}).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
 //删除项目
+//先删子表后删父表
 func RemoveProject(id string) error {
-	var project Project
-	if err := DB.Table("project").Where("id=?", id).Delete(&project).Error; err != nil {
+	var step Step
+	if err := DB.Table("step").Where("project_id=?", id).Delete(&step).Error; err != nil {
 		return err
 	}
-	return nil
-}
-
-//删除任务
-func RemoveTask(id string) error {
-	var task Task
-	if err := DB.Table("task").Where("id=?", id).Delete(&task).Error; err != nil {
+	var project Project
+	if err := DB.Table("project").Where("id=?", id).Delete(&project).Error; err != nil {
 		return err
 	}
 	return nil
@@ -331,38 +426,89 @@ func GetProjectInfo(id string) (Project, error) {
 	if err := DB.Table("project").Where("id=?", id).Find(&project).Error; err != nil {
 		return Project{}, err
 	}
+	if err := DB.Table("step").Where("project_id=?", id).Select("name").Find(&project.Step).Error; err != nil {
+		return Project{}, err
+	}
 	return project, nil
 }
 
-//获取任务信息
-func GetTaskInfo(id string) (Task, error) {
-	var task Task
-	if err := DB.Table("task").Where("id=?", id).Find(&task).Error; err != nil {
-		return Task{}, err
-	}
-	return task, nil
-}
-
 //修改项目信息
-func ChangeProjectInfo(project Project) error {
-	if err := DB.Table("project").Where("id=?", project.ProjectId).Updates(map[string]interface{}{"name": project.ProjectName, "start_time": project.StartTime, "deadline": project.Deadline, "remark": project.Remark}).Error; err != nil {
+func ChangeProjectInfo(project Project, id int) error {
+	if err := DB.Table("project").Where("id=?", id).Updates(map[string]interface{}{"name": project.ProjectName, "start_time": project.StartTime, "deadline": project.Deadline, "remark": project.Remark}).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-//修改任务信息
+//创建任务
+func CreateTask(taskName string, creator_id int, startTime string, deadline string, remark string, stepId int, project string, step string, teamId int) int {
+	task := Task{TaskName: taskName, CreatorId: creator_id, CreateTime: time.Now().Format("2006-01-02 15:04:00"), StartTime: startTime, Deadline: deadline, Remark: remark, StepId: stepId, ProName: project, StepName: step, TeamId: teamId}
+	if err := DB.Table("task").Create(&task).Error; err != nil {
+		fmt.Println("任务创建出错(库)" + err.Error()) //err.Error打印错误
+		return 0
+	}
+	return task.TaskId
+}
+
+//布置任务
+func AssginIntoTable(UId int, Tid int, uName string, performance bool) error {
+	UT := UserTask{UserId: UId, TaskId: Tid, PrincipalName: uName, Performance: performance}
+	if err := DB.Table("user_task").Create(&UT).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+//获取任务信息(包括成员名字)
+func GetTaskInfo(id string) (Task, error) {
+	var task Task
+	if err := DB.Table("task").Where("id=?", id).Find(&task).Error; err != nil {
+		return Task{}, err
+	}
+	if err := DB.Table("user_task").Where("task_id=?", id).Select("principal_name").Find(&task.Member).Error; err != nil {
+		return Task{}, err
+	}
+	return task, nil
+}
+
+//修改任务信息???
 func ChangeTaskInfo(task Task) error {
-	if err := DB.Table("task").Where("id=?", task.TaskId).Updates(map[string]interface{}{"name": task.TaskName, "start_time": task.StartTime, "deadline": task.Deadline, "remark": task.Remark}).Error; err != nil {
+	var userTask UserTask
+	if err := DB.Table("user_task").Where("task_id=?", task.TaskId).Delete(&userTask).Error; err != nil {
+		return err
+	}
+	if err := DB.Table("task").Where("id=?", task.TaskId).Updates(map[string]interface{}{"name": task.TaskName, "start_time": task.StartTime, "deadline": task.Deadline, "remark": task.Remark, "step_id": task.StepId, "project": task.ProName, "step": task.StepName}).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+// //创建任务
+// func CreateTask(taskName string, creator_id int, startTime string, deadline string, remark string, stepId int, project string, step string) int {
+// 	task := Task{TaskName: taskName, CreatorId: creator_id, CreateTime: time.Now().Format("2006-01-02 15:04:00"), StartTime: startTime, Deadline: deadline, Remark: remark, StepId: stepId, ProName: project, StepName: step}
+// 	if err := DB.Table("task").Create(&task).Error; err != nil {
+// 		fmt.Println("任务创建出错(库)" + err.Error()) //err.Error打印错误
+// 		return 0
+// 	}
+// 	return task.TaskId
+// }
+
+//删除任务
+func RemoveTask(id string) error {
+	var userTask UserTask
+	if err := DB.Table("user_task").Where("task_id=?", id).Delete(&userTask).Error; err != nil {
+		return err
+	}
+	var task Task
+	if err := DB.Table("task").Where("id=?", id).Delete(&task).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
 //修改用户头像
-func UpdateAvator(id int) error {
-	var user User
-	if err := DB.Table("user").Where("id = ?", id).Update("avatar", user.Avatar).Error; err != nil {
+func UpdateAvator(avatar User) error {
+	if err := DB.Table("user").Where("id = ?", avatar.UserId).Updates(map[string]interface{}{"avatar": avatar.Avatar, "sha": avatar.Sha, "path": avatar.Path}).Error; err != nil {
 		return err
 	}
 	return nil

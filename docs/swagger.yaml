@@ -1,11 +1,836 @@
-host: localhost:8918
+definitions:
+  model.Password:
+    properties:
+      confirm_password:
+        type: string
+      new_password:
+        type: string
+      old_password:
+        type: string
+    type: object
+  model.Project:
+    properties:
+      create_time:
+        type: string
+      creator_id:
+        type: integer
+      deadline:
+        type: string
+      project_id:
+        type: integer
+      project_name:
+        type: string
+      remark:
+        type: string
+      start_time:
+        type: string
+      step:
+        items:
+          type: string
+        type: array
+      team_id:
+        type: integer
+    type: object
+  model.Task:
+    properties:
+      createtime:
+        type: string
+      creator_id:
+        type: integer
+      deadline:
+        type: string
+      member:
+        description: 以下不是必要的，但方便实用
+        items:
+          type: string
+        type: array
+      name:
+        type: string
+      project:
+        type: string
+      remark:
+        type: string
+      start_time:
+        type: string
+      step:
+        type: string
+      step_id:
+        type: integer
+      task_id:
+        type: integer
+      team_id:
+        type: integer
+    type: object
+  model.Team:
+    properties:
+      avatar:
+        type: string
+      creator_id:
+        type: integer
+      team_coding:
+        type: string
+      team_id:
+        type: integer
+      teamname:
+        type: string
+    type: object
+  model.User:
+    properties:
+      avatar:
+        type: string
+      feedback:
+        type: string
+      id:
+        type: integer
+      nickname:
+        type: string
+      password:
+        type: string
+      path:
+        type: string
+      phone:
+        type: string
+      sha:
+        type: string
+    type: object
+  model.UserTeam:
+    properties:
+      id:
+        type: integer
+      team_id:
+        type: integer
+      user_id:
+        type: integer
+    type: object
+host: localhost:9918
 info:
   contact: {}
   description: 一款面向小型团队的任务进度共享软件
   termsOfService: http://swagger.io/terrms
   title: Team
   version: 1.0.0
-paths: {}
+paths:
+  /info/donelist:
+    get:
+      consumes:
+      - application/json
+      description: “获取已完成任务”
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: 获取失败
+        "401":
+          description: 验证失败
+      summary: “已完成任务”
+      tags:
+      - tasklist
+  /info/donetask:
+    put:
+      consumes:
+      - application/json
+      description: “取消对钩”
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 任务id
+        in: path
+        name: task_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "401":
+          description: 验证失败
+      summary: “取消任务的完成”
+      tags:
+      - tasklist
+  /info/donetask/:task_id:
+    put:
+      consumes:
+      - application/json
+      description: “打对钩完成任务”
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 任务id
+        in: path
+        name: task_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 任务完成
+        "401":
+          description: 验证失败
+      summary: “完成任务”
+      tags:
+      - tasklist
+  /info/todolist:
+    get:
+      consumes:
+      - application/json
+      description: “获取未完成任务”
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: 获取失败
+        "401":
+          description: 身份验证失败
+      summary: “任务待办”
+      tags:
+      - tasklist
+  /login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: user
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/model.User'
+      responses:
+        "200":
+          description: 登陆成功
+        "400":
+          description: 输入格式错误
+        "401":
+          description: 密码错误
+        "404":
+          description: 用户不存在
+      summary: '"登录"'
+      tags:
+      - user
+  /task/:task_id:
+    delete:
+      consumes:
+      - application/json
+      description: '"删除一个任务"'
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: task_id
+        in: path
+        name: task_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 删除成功
+        "400":
+          description: 删除失败
+        "401":
+          description: 身份验证失败
+      summary: '"删除任务"'
+      tags:
+      - task
+  /task/pro_step_info/:team_id:
+    get:
+      consumes:
+      - application/json
+      description: '"在新建任务界面选择项目后(填入项目名称)返回步骤"'
+      parameters:
+      - description: 项目名称
+        in: body
+        name: pro
+        required: true
+        schema:
+          $ref: '#/definitions/model.Project'
+      - description: team_id
+        in: path
+        name: team_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: 获取失败
+      summary: '"项目对应的步骤"'
+      tags:
+      - task
+  /task/team_info/:team_id:
+    get:
+      consumes:
+      - application/json
+      description: '"获取项目任务新建所需的团队成员和项目名称"'
+      parameters:
+      - description: team_id
+        in: path
+        name: team_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+        "400":
+          description: 获取失败
+      summary: '"获取任务编辑页面需要的信息"'
+      tags:
+      - task
+  /team:
+    get:
+      consumes:
+      - application/json
+      description: '"刚登陆后的第一个界面"'
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: 获取失败
+        "401":
+          description: 身份验证失败
+      summary: '"查看用户加入的所有团队"'
+      tags:
+      - team
+    post:
+      consumes:
+      - application/json
+      description: '"创建一个新的团队"'
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: teamInfo
+        in: body
+        name: teamInfo
+        required: true
+        schema:
+          $ref: '#/definitions/model.Team'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 团队创建成功
+        "400":
+          description: 创建失败
+        "401":
+          description: 身份验证失败
+      summary: '"创建团队"'
+      tags:
+      - team
+  /team/:team_id:
+    get:
+      consumes:
+      - application/json
+      description: '"单击团队名查看团队信息"'
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: team_id
+        in: path
+        name: team_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: 获取失败
+        "401":
+          description: 身份验证失败
+      summary: '"查看团队"'
+      tags:
+      - team
+  /team/paticipation:
+    post:
+      consumes:
+      - application/json
+      description: '"加入一个新的团队"'
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: team
+        in: body
+        name: team
+        required: true
+        schema:
+          $ref: '#/definitions/model.UserTeam'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 加入成功
+        "400":
+          description: 加入失败
+        "401":
+          description: 身份验证失败
+      summary: '"加入团队"'
+      tags:
+      - team
+  /team/project/:project_id:
+    delete:
+      consumes:
+      - application/json
+      description: '"删除一个项目"'
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: project_id
+        in: path
+        name: project_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: 删除失败
+        "401":
+          description: 身份验证失败
+      summary: '"删除项目"'
+      tags:
+      - project
+    get:
+      consumes:
+      - application/json
+      description: '"单击编辑查看项目信息"'
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: project_id
+        in: path
+        name: project_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+        "401":
+          description: 身份验证失败
+        "404":
+          description: 获取失败
+      summary: '"查看项目"'
+      tags:
+      - project
+    put:
+      consumes:
+      - application/json
+      description: '"创建人修改一个项目"'
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: project_id
+        in: path
+        name: project_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 修改成功
+        "400":
+          description: 删除失败
+        "401":
+          description: 身份验证失败
+      summary: '"修改项目"'
+      tags:
+      - project
+  /team/task/:task_id:
+    get:
+      consumes:
+      - application/json
+      description: '"编辑前查看任务信息"'
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: task_id
+        in: path
+        name: task_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: 获取失败
+        "401":
+          description: 身份验证失败
+      summary: '"查看任务"'
+      tags:
+      - project
+  /team/task/:task_id/:team_id:
+    put:
+      consumes:
+      - application/json
+      description: '"创建人修改一个任务"'
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: task_id
+        in: path
+        name: task_id
+        required: true
+        type: string
+      - description: 填入需要修改的信息
+        in: body
+        name: task
+        required: true
+        schema:
+          $ref: '#/definitions/model.Task'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 修改成功
+        "400":
+          description: 删除失败
+        "401":
+          description: 身份验证失败
+      summary: '"修改任务"'
+      tags:
+      - project
+  /team/task/:team_id:
+    post:
+      consumes:
+      - application/json
+      description: '"项目任务新建"'
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: team_id
+        in: path
+        name: step_id
+        required: true
+        type: string
+      - description: 注意填入的成员是结构体
+        in: body
+        name: task
+        required: true
+        schema:
+          $ref: '#/definitions/model.Task'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: 创建失败
+        "401":
+          description: 身份验证失败
+        "404":
+          description: 格式错误
+      summary: '"创建任务并分配"'
+      tags:
+      - task
+  /user:
+    post:
+      consumes:
+      - application/json
+      description: '"注册一个新用户"'
+      parameters:
+      - description: user
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/model.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 用户创建成功
+        "400":
+          description: 输入有误，格式错误
+        "401":
+          description: 电话号码重复
+      summary: '"注册"'
+      tags:
+      - user
+  /user/avatar:
+    put:
+      consumes:
+      - application/json
+      description: '"修改用户头像"'
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 文件
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 上传成功
+        "400":
+          description: 上传失败
+        "401":
+          description: 身份验证失败
+      summary: '"修改头像"'
+      tags:
+      - user
+  /user/change_password/change:
+    post:
+      consumes:
+      - application/json
+      description: “修改密码”
+      parameters:
+      - description: 输入两次新密码
+        in: body
+        name: password
+        required: true
+        schema:
+          $ref: '#/definitions/model.Password'
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 修改成功
+        "400":
+          description: 修改失败
+        "401":
+          description: 验证失败
+      summary: “修改用户密码”
+      tags:
+      - userinfo
+  /user/change_password/verify:
+    get:
+      consumes:
+      - application/json
+      description: “修改密码前对密码的验证功能”
+      parameters:
+      - description: 输入密码
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/model.User'
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 验证成功
+        "400":
+          description: 输入有误
+        "401":
+          description: 验证失败
+      summary: “验证用户密码”
+      tags:
+      - userinfo
+  /user/feedback:
+    put:
+      consumes:
+      - application/json
+      description: “用户反馈”
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 输入反馈信息
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/model.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 反馈成功
+        "400":
+          description: 输入格式有误
+        "401":
+          description: 验证失败
+      summary: “用户反馈”
+      tags:
+      - userinfo
+  /user/info:
+    put:
+      consumes:
+      - application/json
+      description: “修改用户的基本信息”
+      parameters:
+      - description: user
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/model.User'
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 输入昵称
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/model.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 修改成功
+        "400":
+          description: 修改失败
+        "401":
+          description: 验证失败
+      summary: “修改用户的信息”
+      tags:
+      - userinfo
+  /user/pupup:
+    post:
+      consumes:
+      - application/json
+      description: '"再点击“完成设置”之前头像已经设置完，注册后弹窗里输入昵称"'
+      parameters:
+      - description: 输入昵称
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/model.User'
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 注册成功
+        "400":
+          description: 输入有误
+        "401":
+          description: 身份验证失败
+      summary: '"初始化用户信息"'
+      tags:
+      - user
+  /user/pupup/avatar:
+    post:
+      consumes:
+      - application/json
+      description: '"修改用户头像"'
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 文件
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 上传成功
+        "400":
+          description: 上传失败
+        "401":
+          description: 身份验证失败
+      summary: '"修改头像"'
+      tags:
+      - user
 schemes:
 - http
 swagger: "2.0"

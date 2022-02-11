@@ -1,16 +1,21 @@
 package router
 
 import (
+	"fmt"
 	"team/model"
 
 	"github.com/gin-gonic/gin"
 )
 
-func Auth(c *gin.Context) {
-	token := c.Request.Header.Get("token")
-	id, err := model.VerifyToken(token)
-	if err != nil {
-		c.JSON(401, gin.H{"message": "验证失败"})
+func Auth() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		token := c.Request.Header.Get("token")
+		id, err := model.VerifyToken(token)
+		fmt.Println(token)
+		if err != nil {
+			c.JSON(401, gin.H{"message": "身份验证失败"})
+		}
+		fmt.Println(id, "s")
+		c.Set("id", id)
 	}
-	c.Set("user_id", id)
 }
