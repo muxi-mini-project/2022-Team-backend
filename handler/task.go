@@ -99,14 +99,7 @@ func GetProStepName(c *gin.Context) {
 // @Failure 400 "创建失败"
 // @Router /team/task/:team_id [post]
 func CreateTask(c *gin.Context) {
-	temp, ok := c.Get("id")
-	id := temp.(int)
-	if !ok {
-		c.JSON(401, gin.H{
-			"code":    401,
-			"message": "身份验证失败",
-		})
-	}
+	id := c.MustGet("id").(int)
 	userInfo, err := model.GetUserInfo(id)
 	if err != nil {
 		c.JSON(400, gin.H{
@@ -194,14 +187,7 @@ func CreateTask(c *gin.Context) {
 // @Failure 400 "删除失败"
 // @Router /task/:task_id [delete]
 func DeleteTask(c *gin.Context) {
-	temp, ok := c.Get("id")
-	id := temp.(int)
-	if !ok {
-		c.JSON(401, gin.H{
-			"code":    "401",
-			"message": "身份验证失败",
-		})
-	}
+	id := c.MustGet("id").(int)
 	userInfo, err := model.GetUserInfo(id)
 	if err != nil {
 		c.JSON(400, gin.H{
@@ -226,12 +212,11 @@ func DeleteTask(c *gin.Context) {
 			return
 		}
 
-		if !ok {
-			c.JSON(200, gin.H{
-				"code":    "200",
-				"message": "删除成功",
-			})
-		}
+		c.JSON(200, gin.H{
+			"code":    "200",
+			"message": "删除成功",
+		})
+
 	}
 
 }
@@ -248,13 +233,6 @@ func DeleteTask(c *gin.Context) {
 // @Failure 400 "获取失败"
 // @Router /team/task/:task_id [get]
 func ViewTask(c *gin.Context) {
-	_, ok := c.Get("id")
-	if !ok {
-		c.JSON(401, gin.H{
-			"code":    "401",
-			"message": "身份验证失败",
-		})
-	}
 
 	task_id := c.Param("task_id")
 
@@ -288,14 +266,7 @@ func ViewTask(c *gin.Context) {
 // @Router /team/task/:task_id/:team_id [put]
 func ModifyTask(c *gin.Context) {
 	// var project model.Project
-	temp, ok := c.Get("id")
-	id := temp.(int)
-	if !ok {
-		c.JSON(401, gin.H{
-			"code":    "401",
-			"message": "身份验证失败",
-		})
-	}
+	id := c.MustGet("id").(int)
 	userInfo, _ := model.GetUserInfo(id)
 	taskId := c.Param("task_id")
 	// project_id,_ := strconv.Atoi(temp)

@@ -1,7 +1,9 @@
 package handler
 
 import (
+	"encoding/base64"
 	"fmt"
+	"net/http"
 	"os"
 	"path"
 	"strconv"
@@ -12,93 +14,59 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// @Summary "注册"
-// @Description "注册一个新用户"
-// @tags user
+// @Summary "登录"
+// @Tags user
+// @Description "一站式登录"
 // @Accept json
 // @Produce json
-// @Param user body model.User true "user"
-// @Success 200 "用户创建成功"
-// @Failure 400 "输入有误，格式错误"
-// @Failure 401 "电话号码重复"
-// @Router /user [post]
-func User(c *gin.Context) {
-	var user model.User
-	if err := c.BindJSON(&user); err != nil {
-		c.JSON(400, gin.H{
-			"code":    400,
-			"message": "输入有误，格式错误"})
-		return
-	}
-	//电话位数问题前端处理
-	fmt.Println(user.Phone)
-	if _, a := model.IfExistUserPhone(user.Phone); a != 1 {
-		c.JSON(401, gin.H{
-			"code":    401,
-			"message": "对不起，该电话号码已经被绑定",
-		})
-		return
-	}
-	user_id := model.Register(user.Phone, user.Password)
-	fmt.Println(user.Phone)
-	c.JSON(200, gin.H{
-		"code":    200,
-		"message": "用户创建成功",
-		"user_id": user_id,
-	})
-}
-
-// @Summary "登录"
-// @Describtion "输入电话密码验证用户信息实现登入"
-// @Tags user
-// @Accept json
-// @Producer json
-// @Param token header string true "token"
-// @Param user body model.User true "user"
-// @Success 200  "登陆成功"
-// @Failure 400 "输入格式错误"
-// @Failure 404 "用户不存在"
-// @Failure 401 "密码错误"
+// @Param user body model.User true "输入学号，密码进行登录"
+// @Success 200  "将用户id作为token保留"
+// @Failure 401  "身份认证失败 重新登录"
+// @Failure 400  "输入有误"
 // @Router /login [post]
 func Login(c *gin.Context) {
-	var user model.User
-	//BindJSON把前端的数据写到user里
-	if err := c.BindJSON(&user); err != nil {
-		c.JSON(400, gin.H{
-			"code":    400,
-			"message": "输入格式有误",
-		})
+	var u model.User
+	if err := c.BindJSON(&u); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Lack Param Or Param Not Satisfiable."})
 		return
 	}
-
-	fmt.Println(user.Phone, user.Password)
-	//验证用户是否存在（电话是否已经注册）
-	if model.VerifyPhone(user.Phone) != false {
-		c.JSON(404, gin.H{
-			"code":    404,
-			"message": "用户不存在",
-		})
+	if u.StudentId == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Lack Param Or Param Not Satisfiable."})
 		return
 	}
-	//验证密码,密码可能重复所以还要电话
-	if model.VerifyPassword(user.Phone, user.Password) == false {
-		c.JSON(401, gin.H{
-			"code":    401,
-			"message": "密码错误",
-		})
-		return
+	pwd := u.Password
+	//首次登录，验证一站式
+	//判断是否首次登录
+	result := model.DB.Table("user").Where("student_id = ?", u.StudentId).First(&u)
+	if result.Error != nil {
+		I, err := model.GetUserInfoFormOne(u.StudentId, pwd)
+		fmt.Println(I)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, "Password or account is wrong.")
+			return
+		}
+		//对用户信息初始化
+		u.NickName = " "
+		//对密码进行base64加密
+		u.Password = base64.StdEncoding.EncodeToString([]byte(u.Password))
+		model.DB.Table("user").Create(&u)
+		model.DB.Table("user").Where("student_id = ?", u.StudentId).Select("id").Find(&u.UserId)
 	} else {
-		user0, _ := model.GetUserId(user.Phone)
-		c.JSON(200, gin.H{
-			"code":    200,
-			"message": "登陆成功,请将token放到请求头中",
-			"token":   model.GenerateToken(user0.UserId),
-		})
-		token := model.GenerateToken(user0.UserId)
-		fmt.Println(token)
-		return
+		//在数据库中解密比较
+		password, _ := base64.StdEncoding.DecodeString(u.Password)
+		model.DB.Table("user").Where("student_id = ?", u.StudentId).Select("id").Find(&u.UserId)
+		if string(password) != pwd {
+			c.JSON(http.StatusUnauthorized, "password or account is wrong.")
+			return
+		}
 	}
-
+	fmt.Println(u.UserId)
+	signedToken := model.GenerateToken(u.UserId)
+	c.JSON(200, gin.H{
+		"code":    200,
+		"message": "将用户id作为token保留",
+		"data":    signedToken,
+	})
 }
 
 // @Summary "修改头像"
@@ -115,18 +83,12 @@ func Login(c *gin.Context) {
 // @Router /user/avatar [put]
 func ModifyProfile(c *gin.Context) {
 
-	// temp := c.Request.Header.Get("id")
-	// id, _ := strconv.Atoi(temp)
-
-	temp, ok := c.Get("id")
-	id := temp.(int)
-	if !ok {
-		c.JSON(401, gin.H{
-			"code":    "401",
-			"message": "身份验证失败",
-		})
+	var user model.User
+	id := c.MustGet("id").(int)
+	user, err := model.GetUserInfo(id)
+	if err != nil {
+		fmt.Println(err)
 	}
-
 	file, err := c.FormFile("file")
 
 	if err != nil {
@@ -148,7 +110,7 @@ func ModifyProfile(c *gin.Context) {
 
 	id1 := strconv.Itoa(id)
 
-	file.Filename = id1 + fileExt
+	file.Filename = id1 + user.StudentId + fileExt
 
 	filename := filepath + file.Filename
 
@@ -161,7 +123,7 @@ func ModifyProfile(c *gin.Context) {
 	}
 
 	// 删除原头像
-	user, _ := model.GetUserInfo(id)
+	// user, _ := model.GetUserInfo(id)
 	if user.Path != "" && user.Sha != "" {
 		connector.RepoCreate().Del(user.Path, user.Sha)
 	}
@@ -209,14 +171,8 @@ func InitUserInfo(c *gin.Context) {
 	// id := c.MustGet("id").(int)
 	// temp := c.Request.Header.Get("id")
 	// id, _ := strconv.Atoi(temp)
-	temp, ok := c.Get("id")
-	id := temp.(int)
-	if !ok {
-		c.JSON(401, gin.H{
-			"code":    401,
-			"message": "身份验证失败",
-		})
-	}
+	id := c.MustGet("id").(int)
+
 	var user model.User
 	user.UserId = id
 	if err := c.BindJSON(&user); err != nil {
@@ -281,4 +237,93 @@ func InitUserInfo(c *gin.Context) {
 // 	if err := model.UpdateAvator(id, dst); err != nil {
 // 		fmt.Println(err)
 // 	}
+// }
+
+// // @Summary "注册"
+// // @Description "注册一个新用户"
+// // @tags user
+// // @Accept json
+// // @Produce json
+// // @Param user body model.User true "user"
+// // @Success 200 "用户创建成功"
+// // @Failure 400 "输入有误，格式错误"
+// // @Failure 401 "电话号码重复"
+// // @Router /user [post]
+// func User(c *gin.Context) {
+// 	var user model.User
+// 	if err := c.BindJSON(&user); err != nil {
+// 		c.JSON(400, gin.H{
+// 			"code":    400,
+// 			"message": "输入有误，格式错误"})
+// 		return
+// 	}
+// 	//电话位数问题前端处理
+// 	fmt.Println(user.Phone)
+// 	if _, a := model.IfExistUserPhone(user.Phone); a != 1 {
+// 		c.JSON(401, gin.H{
+// 			"code":    401,
+// 			"message": "对不起，该电话号码已经被绑定",
+// 		})
+// 		return
+// 	}
+// 	user_id := model.Register(user.Phone, user.Password)
+// 	fmt.Println(user.Phone)
+// 	c.JSON(200, gin.H{
+// 		"code":    200,
+// 		"message": "用户创建成功",
+// 		"user_id": user_id,
+// 	})
+// }
+
+// // @Summary "登录"
+// // @Describtion "输入电话密码验证用户信息实现登入"
+// // @Tags user
+// // @Accept json
+// // @Producer json
+// // @Param token header string true "token"
+// // @Param user body model.User true "user"
+// // @Success 200  "登陆成功"
+// // @Failure 400 "输入格式错误"
+// // @Failure 404 "用户不存在"
+// // @Failure 401 "密码错误"
+// // @Router /login [post]
+// func Login(c *gin.Context) {
+// 	var user model.User
+// 	//BindJSON把前端的数据写到user里
+// 	if err := c.BindJSON(&user); err != nil {
+// 		c.JSON(400, gin.H{
+// 			"code":    400,
+// 			"message": "输入格式有误",
+// 		})
+// 		return
+// 	}
+
+// 	fmt.Println(user.Phone, user.Password)
+// 	//验证用户是否存在（电话是否已经注册）
+// 	if model.VerifyPhone(user.Phone) != false {
+// 		c.JSON(404, gin.H{
+// 			"code":    404,
+// 			"message": "用户不存在",
+// 		})
+// 		return
+// 	}
+// 	//验证密码,密码可能重复所以还要电话（用这两个验证是否有这条数据在）
+// 	if model.VerifyPassword(user.Phone, user.Password) == false {
+// 		c.JSON(401, gin.H{
+// 			"code":    401,
+// 			"message": "密码错误",
+// 		})
+// 		return
+// 	} else {
+// 		user0, _ := model.GetUserId(user.Phone)
+// 		c.JSON(200, gin.H{
+// 			"code":    200,
+// 			"message": "登陆成功,请将token放到请求头中",
+// 			"token":   model.GenerateToken(user0.UserId),
+// 		})
+// 		token := model.GenerateToken(user0.UserId)
+// 		fmt.Println(token)
+// 		return
+// 	}
+
 // }

@@ -28,14 +28,7 @@ func JoinTeam(c *gin.Context) {
 	//扫码加团队：通过扫码我应该可以获得对应的团队id
 	//获取用户信息
 	var team model.UserTeam
-	temp, ok := c.Get("id")
-	id := temp.(int)
-	if !ok {
-		c.JSON(401, gin.H{
-			"code":    200,
-			"message": "身份验证失败",
-		})
-	}
+	id := c.MustGet("id").(int)
 	user, err1 := model.GetUserInfo(id)
 	if err1 != nil {
 		log.Println(err1)
@@ -77,14 +70,7 @@ func JoinTeam(c *gin.Context) {
 func CreateTeam(c *gin.Context) {
 	var teamInfo model.Team
 
-	temp, ok := c.Get("id")
-	id := temp.(int)
-	if !ok {
-		c.JSON(401, gin.H{
-			"code":    401,
-			"message": "身份验证失败",
-		})
-	}
+	id := c.MustGet("id").(int)
 
 	file, err := c.FormFile("file")
 	teamInfo.TeamName = c.Request.FormValue("name")
@@ -167,13 +153,6 @@ func CreateTeam(c *gin.Context) {
 // @Failure 400 "获取失败"
 // @Router /team/:team_id [get]
 func ViewTeamInfo(c *gin.Context) {
-	_, ok := c.Get("id")
-	if !ok {
-		c.JSON(401, gin.H{
-			"code":    401,
-			"message": "身份验证失败",
-		})
-	}
 
 	team_id := c.Param("team_id")
 
@@ -203,14 +182,7 @@ func ViewTeamInfo(c *gin.Context) {
 // @Failure 400 "获取失败"
 // @Router /team [get]
 func ViewAllTeam(c *gin.Context) {
-	temp, ok := c.Get("id")
-	id := temp.(int)
-	if !ok {
-		c.JSON(401, gin.H{
-			"code":    401,
-			"message": "验证失败",
-		})
-	}
+	id := c.MustGet("id").(int)
 
 	team, err := model.GetAllTeamInfo(id)
 	if err != nil {

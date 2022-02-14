@@ -24,15 +24,7 @@ import (
 
 func CreateProject(c *gin.Context) {
 	var project model.Project
-	Id, ok := c.Get("id")
-	id := Id.(int)
-	if !ok {
-		c.JSON(401, gin.H{
-			"code":    401,
-			"message": "身份验证失败",
-		})
-		return
-	}
+	id := c.MustGet("id").(int)
 
 	err2 := c.BindJSON(&project)
 	if err2 != nil {
@@ -52,8 +44,14 @@ func CreateProject(c *gin.Context) {
 	teamId, _ := strconv.Atoi(temp)
 	project.TeamId = teamId
 	fmt.Println(project.TeamId)
-
-	if project.ProjectId = model.CreatePro(project.ProjectName, project.CreatorId, project.StartTime, project.Deadline, project.Remark, project.TeamId); project.ProjectId == 0 {
+	//这里还有一个数据库中用不到的参数，怕直接写project会报错
+	if project.ProjectId = model.CreatePro(
+		project.ProjectName,
+		project.CreatorId,
+		project.StartTime,
+		project.Deadline,
+		project.Remark,
+		project.TeamId); project.ProjectId == 0 {
 		fmt.Println(project.ProjectId, "cao")
 		c.JSON(400, gin.H{
 			"code":    400,
@@ -90,14 +88,7 @@ func CreateProject(c *gin.Context) {
 // @Failure 400 "删除失败"
 // @Router /team/project/:project_id [delete]
 func DeleteProject(c *gin.Context) {
-	temp, ok := c.Get("id")
-	id := temp.(int)
-	if !ok {
-		c.JSON(401, gin.H{
-			"code":    401,
-			"message": "身份验证失败",
-		})
-	}
+	id := c.MustGet("id").(int)
 	userInfo, err := model.GetUserInfo(id)
 	if err != nil {
 		c.JSON(400, gin.H{
@@ -141,14 +132,6 @@ func DeleteProject(c *gin.Context) {
 // @Failure 404 "获取失败"
 // @Router /team/project/:project_id [get]
 func ViewProject(c *gin.Context) {
-	_, ok := c.Get("id")
-	if !ok {
-		c.JSON(401, gin.H{
-			"code":    200,
-			"message": "身份验证失败",
-		})
-	}
-
 	project_id := c.Param("project_id")
 
 	project, err := model.GetProjectInfo(project_id)
@@ -179,14 +162,7 @@ func ViewProject(c *gin.Context) {
 // @Failure 400 "删除失败"
 // @Router /team/project/:project_id [put]
 func ModifyProject(c *gin.Context) {
-	temp, ok := c.Get("id")
-	id := temp.(int)
-	if !ok {
-		c.JSON(401, gin.H{
-			"code":    "401",
-			"message": "身份验证失败",
-		})
-	}
+	id := c.MustGet("id").(int)
 
 	userInfo, _ := model.GetUserInfo(id)
 	project_id := c.Param("project_id")

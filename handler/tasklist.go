@@ -17,14 +17,7 @@ import (
 // @Failure 400 "获取失败"
 // @Router /info/todolist [get]
 func ToDoList(c *gin.Context) {
-	temp, ok := c.Get("id")
-	id := temp.(int)
-	if !ok {
-		c.JSON(401, gin.H{
-			"code":    "401",
-			"message": "身份验证失败",
-		})
-	}
+	id := c.MustGet("id").(int)
 	Userinfo, err := model.GetUserInfo(id)
 	if err != nil {
 		c.JSON(400, gin.H{
@@ -51,14 +44,7 @@ func ToDoList(c *gin.Context) {
 // @Failure 400 "获取失败"
 // @Router /info/donelist [get]
 func DoneList(c *gin.Context) {
-	temp, ok := c.Get("id")
-	id := temp.(int)
-	if !ok {
-		c.JSON(401, gin.H{
-			"code":    "401",
-			"message": "身份验证失败",
-		})
-	}
+	id := c.MustGet("id").(int)
 	Userinfo, err := model.GetUserInfo(id)
 	if err != nil {
 		c.JSON(400, gin.H{
@@ -86,14 +72,7 @@ func DoneList(c *gin.Context) {
 // @Failure 401 "验证失败"
 // @Router /info/donetask/:task_id [put]
 func DoneTask(c *gin.Context) {
-	temp, ok := c.Get("id")
-	uId := temp.(int)
-	if !ok {
-		c.JSON(401, gin.H{
-			"code":    "401",
-			"message": "身份验证失败",
-		})
-	}
+	uId := c.MustGet("id").(int)
 	id := c.Param("task_id")
 	if err := model.CompleteTask(id, uId); err != nil {
 		c.JSON(400, gin.H{
@@ -118,14 +97,7 @@ func DoneTask(c *gin.Context) {
 // @Failure 401 "验证失败"
 // @Router /info/donetask [put]
 func CancelDone(c *gin.Context) {
-	temp, ok := c.Get("id")
-	uId := temp.(int)
-	if !ok {
-		c.JSON(401, gin.H{
-			"code":    "401",
-			"message": "身份验证失败",
-		})
-	}
+	uId := c.MustGet("id").(int)
 
 	id := c.Param("task_id")
 	if err := model.CancelComplete(id, uId); err != nil {

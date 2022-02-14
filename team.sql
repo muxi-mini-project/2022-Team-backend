@@ -7,6 +7,7 @@ use team;
 drop  table if exists user;
 create table user(
     id int primary key auto_increment,
+    student_id varchar(255),
     nickname varchar(255) not null,
     phone varchar(11) not null unique,
     password varchar(255) not null,

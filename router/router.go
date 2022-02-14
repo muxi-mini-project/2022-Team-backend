@@ -15,8 +15,8 @@ func Router(r *gin.Engine) {
 	r.NoRoute(func(c *gin.Context) {
 		c.String(http.StatusNotFound, "The incorrect API router.")
 	})
-	//注册新用户
-	r.POST("/user", handler.User) //1
+	// //注册新用户
+	// r.POST("/user", handler.User) //1
 
 	//登录(完成注册设置时自动登录)
 	r.POST("/login", handler.Login) //1
@@ -24,11 +24,11 @@ func Router(r *gin.Engine) {
 	v1 := r.Group("/user").Use(Auth()) //1
 	{
 
-		//注册后弹窗中初始化昵称
-		v1.POST("/pupup", handler.InitUserInfo) //1
-
 		//初始化头像
 		v1.POST("/pupup/avatar", handler.ModifyProfile) //1
+
+		//注册后弹窗中初始化昵称
+		v1.POST("/pupup", handler.InitUserInfo) //1
 
 		//获取用户信息
 		v1.GET("/info", handler.Userinfo) //1
@@ -39,11 +39,11 @@ func Router(r *gin.Engine) {
 		//修改用户头像
 		v1.PUT("/avatar", handler.ModifyProfile) //1
 
-		//验证密码
-		v1.POST("/change_password/verify", handler.VerifyPassword) //1
+		// //验证密码
+		// v1.POST("/change_password/verify", handler.VerifyPassword) //1
 
-		//修改密码
-		v1.POST("/change_password/change", handler.ChangePassword) //1
+		// //修改密码
+		// v1.PUT("/password", handler.ChangePassword) //1
 
 		//用户反馈
 		v1.PUT("/feedback", handler.Feedback) //1

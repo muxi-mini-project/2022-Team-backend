@@ -114,6 +114,7 @@ func GenerateToken(id int) string {
 	claims := &jwtClaims{
 		Id: id,
 	}
+	fmt.Println("1", id)
 	//签发者和过期时间
 	claims.IssuedAt = time.Now().Unix()
 	claims.ExpiresAt = time.Now().Add(time.Second * time.Duration(ExpireTime)).Unix()

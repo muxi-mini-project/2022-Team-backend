@@ -18,7 +18,10 @@ var doc = `{
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
         "termsOfService": "http://swagger.io/terrms",
-        "contact": {},
+        "contact": {
+            "name": "Eternal-Faith",
+            "email": "2295616516@qq.com"
+        },
         "version": "{{.Version}}"
     },
     "host": "{{.Host}}",
@@ -174,7 +177,11 @@ var doc = `{
         },
         "/login": {
             "post": {
+                "description": "\"一站式登录\"",
                 "consumes": [
+                    "application/json"
+                ],
+                "produces": [
                     "application/json"
                 ],
                 "tags": [
@@ -183,14 +190,7 @@ var doc = `{
                 "summary": "\"登录\"",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "token",
-                        "name": "token",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "description": "user",
+                        "description": "输入学号，密码进行登录",
                         "name": "user",
                         "in": "body",
                         "required": true,
@@ -201,16 +201,13 @@ var doc = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "登陆成功"
+                        "description": "将用户id作为token保留"
                     },
                     "400": {
-                        "description": "输入格式错误"
+                        "description": "输入有误"
                     },
                     "401": {
-                        "description": "密码错误"
-                    },
-                    "404": {
-                        "description": "用户不存在"
+                        "description": "身份认证失败 重新登录"
                     }
                 }
             }
@@ -762,43 +759,6 @@ var doc = `{
                 }
             }
         },
-        "/user": {
-            "post": {
-                "description": "\"注册一个新用户\"",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "user"
-                ],
-                "summary": "\"注册\"",
-                "parameters": [
-                    {
-                        "description": "user",
-                        "name": "user",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/model.User"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "用户创建成功"
-                    },
-                    "400": {
-                        "description": "输入有误，格式错误"
-                    },
-                    "401": {
-                        "description": "电话号码重复"
-                    }
-                }
-            }
-        },
         "/user/avatar": {
             "put": {
                 "description": "\"修改用户头像\"",
@@ -837,94 +797,6 @@ var doc = `{
                     },
                     "401": {
                         "description": "身份验证失败"
-                    }
-                }
-            }
-        },
-        "/user/change_password/change": {
-            "post": {
-                "description": "“修改密码”",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "userinfo"
-                ],
-                "summary": "“修改用户密码”",
-                "parameters": [
-                    {
-                        "description": "输入两次新密码",
-                        "name": "password",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/model.Password"
-                        }
-                    },
-                    {
-                        "type": "string",
-                        "description": "token",
-                        "name": "token",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "修改成功"
-                    },
-                    "400": {
-                        "description": "修改失败"
-                    },
-                    "401": {
-                        "description": "验证失败"
-                    }
-                }
-            }
-        },
-        "/user/change_password/verify": {
-            "get": {
-                "description": "“修改密码前对密码的验证功能”",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "userinfo"
-                ],
-                "summary": "“验证用户密码”",
-                "parameters": [
-                    {
-                        "description": "输入密码",
-                        "name": "user",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/model.User"
-                        }
-                    },
-                    {
-                        "type": "string",
-                        "description": "token",
-                        "name": "token",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "验证成功"
-                    },
-                    "400": {
-                        "description": "输入有误"
-                    },
-                    "401": {
-                        "description": "验证失败"
                     }
                 }
             }
@@ -1114,20 +986,6 @@ var doc = `{
         }
     },
     "definitions": {
-        "model.Password": {
-            "type": "object",
-            "properties": {
-                "confirm_password": {
-                    "type": "string"
-                },
-                "new_password": {
-                    "type": "string"
-                },
-                "old_password": {
-                    "type": "string"
-                }
-            }
-        },
         "model.Project": {
             "type": "object",
             "properties": {
@@ -1254,6 +1112,9 @@ var doc = `{
                 },
                 "sha": {
                     "type": "string"
+                },
+                "student_id": {
+                    "type": "string"
                 }
             }
         },
@@ -1286,7 +1147,7 @@ type swaggerInfo struct {
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = swaggerInfo{
 	Version:     "1.0.0",
-	Host:        "localhost:9918",
+	Host:        "122.112.236.36:9918",
 	BasePath:    "",
 	Schemes:     []string{"http"},
 	Title:       "Team",

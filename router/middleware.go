@@ -12,10 +12,14 @@ func Auth() gin.HandlerFunc {
 		token := c.Request.Header.Get("token")
 		id, err := model.VerifyToken(token)
 		fmt.Println(token)
-		if err != nil {
-			c.JSON(401, gin.H{"message": "身份验证失败"})
-		}
+
 		fmt.Println(id, "s")
 		c.Set("id", id)
+		if err != nil || id == 0 {
+			c.JSON(401, gin.H{
+				"code":    401,
+				"message": "身份验证失败"})
+			c.Abort()
+		}
 	}
 }
