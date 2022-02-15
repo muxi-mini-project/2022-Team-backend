@@ -2,8 +2,11 @@ mysql:
   host: "127.0.0.1"
   port: 3306
   user: "root"
-  password: "036068"
+  password: "root&1234"
   db: "team"
   charset: "UTF-8"
 token:
   secret_key: "generating_secrect_key_by_EF"
+web:
+  host: "122.112.236.36"
+  port: 9918
